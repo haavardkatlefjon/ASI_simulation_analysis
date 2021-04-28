@@ -198,12 +198,10 @@ def getAvgCorrFunction(fs_data, corrConfig):
 
                 nBinsTheta = 90 / dtheta
 
-
                 index = np.array([  round( r / dr ),
                                     min( C.shape[2]-1, int(theta / (np.pi/2) * nBinsTheta))
-                                    ])
-                #print("r", r)
-                #print("index", index)
+                                    ], dtype=np.int32)
+
                 C[ti, index[0], index[1]] += spinCorrelation
                 counter[index[0], index[1]] += 1
 
