@@ -1,8 +1,10 @@
 import numpy as np
+import pandas as pd
 import os
 import sys
 import argparse
 import matplotlib.pyplot as plt
+import flatspin.data as fsd
 from scipy.optimize import curve_fit
 
 import analysisHelpers as tools
@@ -17,31 +19,24 @@ corrConfig = {
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
-def tempsweep(input_path, all_runs):
+# def tempsweep(input_path, all_runs):
+def tempsweep(sweep_ds):
     """ Compute correlation lengths for all runs within a sweep directory """
     # Arrays for storing data
-    sweep_length   = len(all_runs)
+    sweep_length   = len(sweep_ds.index.index)
     corrFunctions  = []
     r_k            = []
     spinConfigs    = []
-    E_dips         = []
     corrLengths    = np.zeros(sweep_length)
     corrLengthsVar = np.zeros(sweep_length)
     corrSums       = np.zeros(sweep_length)
 
     # Loop through runs in sweep
-    for i, run in enumerate(all_runs):
-        print("Run {}, temp={}".format(i, all_runs[i]['temp']))
-
-        # Load flatspin run data
-        fs_data = np.load(input_path + '/' + run['outdir'], allow_pickle=True)
-
-        # Store E_dip and timesteps
-        energies = fs_data['energy']
-        E_dips.append([E[1] for E in energies])
+    for i in sweep_ds.index.index:
+        print("Run {}/{}, temp={}".format(i, len(sweep_ds.index.index), sweep_ds.index.iloc[i]['temp']))
 
         # Get 1d correlation function
-        r_k, C, corrSums[i], _, spinConfiguration = tools.getAvgCorrFunction(fs_data, corrConfig)
+        r_k, C, corrSums[i], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, i, corrConfig)
 
         # Store C in array for later use (plotting)
         corrFunctions.append(C)
@@ -52,27 +47,26 @@ def tempsweep(input_path, all_runs):
         corrLengths[i] = popt[0]
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
 
-    timesteps = np.array([E[0] for E in energies])
-
-    return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs), np.array(E_dips), np.array(timesteps)
+    return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
 
 
 
-
-def main_analysis(input_path, all_runs, out_directory = 'analysis_output', createPlots=True):
+def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True):
     # Print start info
-    startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs)".format(input_path, len(all_runs))
+    startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs) \n".format(sweep_ds.basepath, len(sweep_ds.index.index))
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
     print(startInfo)
     tools.printConfig(corrConfig)
+    print("\nflatspin runs")
+    print(sweep_ds.index)
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
 
     # Get correlation lengths
-    corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs, E_dips, timesteps = tempsweep(input_path, all_runs)
+    corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds)
 
     # Extract end temperatures in simulations
-    temps = np.array([tools.getEndTemp(all_runs[i]['temp']) for i in range(len(all_runs))])
+    temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in sweep_ds.index.index])
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
     susceptibilities = tools.flucDissSusceptibility(temps, corrSums)
@@ -85,28 +79,16 @@ def main_analysis(input_path, all_runs, out_directory = 'analysis_output', creat
 
     # filename for storing output files
     analysisID    = tools.getAnalysisId(out_directory)
-    runName       = tools.getRunName(input_path, temps)
+    runName       = tools.getRunName(sweep_ds.basepath, temps)
     filenameBase  = os.path.join(out_directory, str(analysisID) + "_" + runName)
-    tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=input_path)
+    tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
 
     if createPlots:
         # Analysis plots
-        tools.plotAnalysis(input_path, all_runs, filenameBase, temps, r_k, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, E_dips, timesteps, saveFile=True, directory=out_directory)
+        tools.plotAnalysis(sweep_ds, filenameBase, temps, r_k, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, saveFile=True, directory=out_directory)
 
         # Spin config plots
-        tools.plotASEs(input_path, all_runs, filenameBase, spinConfigs, temps, saveFile=True, directory=out_directory)
-
-
-    """
-    ---------------------------------------------------------------------------------------------------------------------------
-    TO DO
-    ------------
-    - teste på sweeps
-    - notere ned runs som er interessante / gir mening
-    - POWER POINT av resultater + diskusjonspunkter
-    - Plot temp profile for different coefficients/exponents
-    ---------------------------------------------------------------------------------------------------------------------------
-    """
+        tools.plotASEs(sweep_ds, filenameBase, spinConfigs, temps, saveFile=True, directory=out_directory)
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -134,27 +116,27 @@ if __name__ == "__main__":
         print('The path specified does not exist')
         sys.exit(1)
 
-
-    # All good
-    # Start by reading index.csv into a list of dicts [{'temp': '[4000, 100, 3]', 'outdir': 'SquareSpinIceClosed.000000.npz'}, ...]
-    all_runs = tools.readIndex(args.path)
+    # Read flatspin sweep data
+    sweep_ds = fsd.Dataset.read(args.path)
 
     # Slice run of -i argument specified
     if args.index != None:
         try:
             index = args.index.split(':')
             if index[0] == '':
-                all_runs = all_runs[:int(index[1])]
+                sweep_ds.index = sweep_ds.index.iloc[:int(index[1]), :]
             elif index[1] == '':
-                all_runs = all_runs[int(index[0]):]
+                sweep_ds.index = sweep_ds.index.iloc[int(index[0]):, :]
             else:
-                all_runs = all_runs[int(index[0]) : int(index[1])]
+                sweep_ds.index = sweep_ds.index.iloc[int(index[0]):int(index[0]), :]
+            sweep_ds.index.reset_index(inplace=True)
         except:
             print("Invalid index. Should be Python list slicing format start:end")
             sys.exit(1)
 
-    if 'temp' in all_runs[0].keys():
-        main_analysis(args.path, all_runs)
+
+    if 'temp' in sweep_ds.index.columns:
+        main_analysis(sweep_ds)
     else:
         print("Not a temp sweep simulation")
         sys.exit(1)
