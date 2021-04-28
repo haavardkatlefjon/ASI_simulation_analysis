@@ -67,18 +67,7 @@ def main_analysis(input_path, all_runs, out_directory = 'analysis_output/', crea
     print(startInfo)
     tools.printConfig(corrConfig)
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
-
-    """ """
-    temps = np.array([tools.getEndTemp(all_runs[i]['temp']) for i in range(len(all_runs))])
-    analysisID    = tools.getAnalysisId(out_directory)
-    print("analysisID", analysisID)
-    runName       = tools.getRunName(input_path, temps)
-    print("runName", runName)
-    filenameBase  = out_directory + str(analysisID) + "_" + runName
-    print("filenameBase")
-    print(filenameBase)
-    """ """
-
+    
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs, E_dips, timesteps = tempsweep(input_path, all_runs)
 
