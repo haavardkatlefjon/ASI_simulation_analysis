@@ -156,14 +156,19 @@ def getAvgCorrFunction(fs_data, corrConfig):
     if N_points_avg > 1:
         raise NotImplementedError("N_points_avg more than 1 has not been implemented yet")
 
+    # get dict of params
+    runParams = readParams(fs_data)
+
+    # read ASE geometry
     pos, angle = getGeometry(fs_data['geometry'])
+
+    # convert coordinated to units of lattice spacing
+    pos /= runParams['lattice_spacing']
+    runParams['lattice_spacing'] = 1
 
     # Compute distance matrix
     distances       = getDistanceMatrix(pos)
     absDistances    = abs(distances)
-
-    # get dict of params
-    runParams = readParams(fs_data)
 
     # get list of neighbors for each magnet
     neighborList = getNeighborList(pos, runParams, neighborDistance=neighbor_dist)
