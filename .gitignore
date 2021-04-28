@@ -1,3 +1,11 @@
+# ting som tar mye plass
+*arrows.png
+*arrows.pdf
+*.npz
+*.log
+*.sh
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,0 +1,4 @@
+model 'flatspin.model.IsingSpinIce'
+model_name 'IsingSpinIce'
+data_format 'npz'
+command """/cluster/home/haavarkf/.local/bin/flatspin-run-sweep -o I40_alpha_0.0121_temps_2000-3200_runs_16 -m IsingSpinIce -p 'size=(40, 40)' -p timesteps=10000 -p input=0 -p periods=1 -p spp=100 -p init=random -p set_temp_method=set_temp -p neighbor_distance=10 -p lattice_spacing=1 -p disorder=0.05 -p alpha=0.012108799999999998 -p use_opencl=True -p sw_b=0.41 -p sw_c=1.0 -p sw_beta=2.0 -p sw_gamma=4.0 -p hc=0.2 -p msat=860000.0 -p volume=1.7600000000000003e-23 -p temp_func=exp-decay -s 'temp=[ [3000,2000.0,3] , [3000,2080.0,3] , [3000,2160.0,3] , [3000,2240.0,3] , [3000,2320.0,3] , [3000,2400.0,3] , [3000,2480.0,3] , [3000,2560.0,3] , [3000,2640.0,3] , [3000,2720.0,3] , [3000,2800.0,3] , [3000,2880.0,3] , [3000,2960.0,3] , [3000,3040.0,3] , [3000,3120.0,3] , [3000,3200.0,3] ]' -r dist -p use_opencl=True"""
