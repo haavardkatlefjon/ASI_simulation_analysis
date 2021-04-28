@@ -60,14 +60,14 @@ def tempsweep(input_path, all_runs):
 
 
 
-def main_analysis(input_path, all_runs, out_directory = 'analysis_output/', createPlots=True):
+def main_analysis(input_path, all_runs, out_directory = 'analysis_output', createPlots=True):
     # Print start info
     startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs)".format(input_path, len(all_runs))
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
     print(startInfo)
     tools.printConfig(corrConfig)
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
-    
+
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs, E_dips, timesteps = tempsweep(input_path, all_runs)
 
@@ -86,8 +86,7 @@ def main_analysis(input_path, all_runs, out_directory = 'analysis_output/', crea
     # filename for storing output files
     analysisID    = tools.getAnalysisId(out_directory)
     runName       = tools.getRunName(input_path, temps)
-    filenameBase  = out_directory + str(analysisID) + "_" + runName
-
+    filenameBase  = os.path.join(out_directory, str(analysisID) + "_" + runName)
     tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=input_path)
 
     if createPlots:
