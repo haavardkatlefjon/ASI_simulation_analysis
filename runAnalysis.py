@@ -52,7 +52,7 @@ def tempsweep(sweep_ds):
 
 
 
-def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True):
+def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True, returnKey = None):
     # Print start info
     startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs) \n".format(sweep_ds.basepath, len(sweep_ds.index.index))
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
@@ -89,6 +89,17 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True)
 
         # Spin config plots
         tools.plotASEs(sweep_ds, filenameBase, spinConfigs, temps, saveFile=True, directory=out_directory)
+
+    if returnKey != None:
+        try:
+            print("Returning", parameterResults[returnKey])
+            return parameterResults[returnKey]
+        except KeyError:
+            print("Illegal returnKey, must be {}", parameterResults.keys())
+
+
+def fitnessFunction(sweep_ds):
+    return main_analysis(sweep_ds, returnKey = 'T_c')
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -136,7 +147,8 @@ if __name__ == "__main__":
 
 
     if 'temp' in sweep_ds.index.columns:
-        main_analysis(sweep_ds)
+        #main_analysis(sweep_ds)
+        fitnessFunction(sweep_ds)
     else:
         print("Not a temp sweep simulation")
         sys.exit(1)
