@@ -490,7 +490,10 @@ def getAnalysisId(out_directory):
 
 
 def getRunName(input_path, temps):
-    elements = input_path.split('/')[-1].split('_')
+    if '\\' in input_path:
+        elements = input_path.split('\\')[-1].split('_')
+    else:
+        elements = input_path.split('/')[-1].split('_')
     runName = ""
     for i in range(len(elements)):
         if i >= 1:
