@@ -10,7 +10,9 @@ from scipy.optimize import curve_fit
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import flatspin.data as fsd
 import colorsys
+
 colors = [v for k, v in mcolors.TABLEAU_COLORS.items()]
 
 
@@ -51,17 +53,6 @@ def isFloat(val):
         return True
     except:
         return False
-
-
-def readParams(fs_data):
-    params = {}
-    for k,v in fs_data['params']:
-        if isFloat(v):
-            params[k] = float(v)
-        else:
-            params[k] = v
-    return params
-
 
 def getNeighborList(pos, params, neighborDistance = None):
     # Calculate neighborhood matrix
@@ -135,54 +126,43 @@ def getTheta(coordsA, coordsB, originRot, verbose=False):
     return theta
 
 
-def getGeometry(geometry):
-    pos, angle = [], []
-    for x,y,alpha in geometry:
-        pos.append((x,y))
-        angle.append(alpha)
-    pos = np.array(pos).astype(float)
-    angle = np.array(angle).astype(float)
-    return pos, angle
+def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
+    """ Called from tempsweep. Returns 1d avg correlation function. """
 
-
-def getAvgCorrFunction(fs_data, corrConfig):
+    # polar correlation function config
     dr            = corrConfig['dr']
     dtheta        = corrConfig['dtheta']
     N_points_avg  = corrConfig['N_points_avg']
     neighbor_dist = corrConfig['neighbor_dist']
 
-    """ Called from tempsweep. Returns 1d avg correlation function. """
-
     if N_points_avg > 1:
         raise NotImplementedError("N_points_avg more than 1 has not been implemented yet")
 
-    # get dict of params
-    runParams = readParams(fs_data)
-
     # read ASE geometry
-    pos, angle = getGeometry(fs_data['geometry'])
+    pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[run_index])
 
     # convert coordinated to units of lattice spacing
-    pos /= runParams['lattice_spacing']
-    runParams['lattice_spacing'] = 1
+    pos /= sweep_ds.params['lattice_spacing']
+    sweep_ds.params['lattice_spacing'] = 1
 
     # Compute distance matrix
     distances       = getDistanceMatrix(pos)
     absDistances    = abs(distances)
 
     # get list of neighbors for each magnet
-    neighborList = getNeighborList(pos, runParams, neighborDistance=neighbor_dist)
+    neighborList = getNeighborList(pos, sweep_ds.params, neighborDistance=neighbor_dist)
 
     # Prepare array to store correlation values
     C = np.zeros((N_points_avg,
-                  round(runParams['lattice_spacing'] * (runParams['neighbor_distance'] + 4) / dr) ,  # number of radial bins
+                  round(sweep_ds.params['lattice_spacing'] * (sweep_ds.params['neighbor_distance'] + 4) / dr) ,  # number of radial bins
                   round(90/dtheta)                                                                   # number of angular bins
                   ))
 
-    timeframes = [len(fs_data['spin'])-1]
+    allSpinConfiguration = fsd.read_table(sweep_ds.tablefile("spin")[run_index])
+    timeframes = [len(allSpinConfiguration.index)-1]
 
     for ti, t in enumerate(timeframes):
-        spinConfiguration = np.array(list(fs_data['spin'][t]))[1:] # [1:] to discard timestep in first position
+        spinConfiguration = allSpinConfiguration.iloc[t].to_numpy()[1:]
         counter           = np.zeros(C[ti,:,:].shape)
 
         for i in tqdm(range(len(pos))):
@@ -226,24 +206,6 @@ def getAvgCorrFunction(fs_data, corrConfig):
     C = np.delete(C, nan_index)
 
     return r_k, C, C_sum, avgPairsInBin, spinConfiguration
-
-
-
-def readIndex(input_path):
-    # Read index.csv into a list of dicts
-    all_runs = []
-    with open(input_path + '/index.csv') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=' ')
-        columns = []
-        for i, line in enumerate(csv_reader):
-            if i == 0:
-                columns = line[1:]
-            else:
-                entry = {}
-                for i, col in enumerate(columns):
-                    entry[col] = line[i]
-                all_runs.append(entry)
-    return all_runs
 
 
 def getEndTemp(temp_string):
@@ -364,19 +326,17 @@ def getRowsCols(totalNum):
     return rows, cols
 
 
-def plotASEs(input_path, all_runs, filenameBase, spinConfigs, temps=None, saveFile=False, directory='./'):
-    fs_data = np.load(input_path + '/' + all_runs[-1]['outdir'], allow_pickle=True)
-    pos, angle = getGeometry(fs_data['geometry'])
-
-    rows, cols = getRowsCols(len(all_runs))
+def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, directory=''):
+    pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[0])
+    rows, cols = getRowsCols(len(sweep_ds.index.index))
 
     # plot position index
-    plotPosIndex = range(1,len(all_runs) + 1)
+    plotPosIndex = range(1,len(sweep_ds.index.index) + 1)
 
     fig = plt.figure(1, figsize=(30,30))
-    for i in range(len(all_runs)):
+    for i in range(len(sweep_ds.index.index)):
         ax = fig.add_subplot(rows,cols,plotPosIndex[i])
-        plotSpinSystem(spinConfigs[i], pos, angle, title=all_runs[i]['temp'], axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=True)
+        plotSpinSystem(spinConfigs[i], pos, angle, title=sweep_ds.index.iloc[i]['temp'], axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=True)
 
     if saveFile:
         filename = filenameBase + "-plots-arrows" + ".pdf"
@@ -387,17 +347,18 @@ def plotASEs(input_path, all_runs, filenameBase, spinConfigs, temps=None, saveFi
         plt.show()
 
 
-def plotAnalysis(input_path, all_runs, filenameBase, temps, r, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, E_dips, timesteps, saveFile=False, directory='./'):
+def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, saveFile=False, directory=''):
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10,10))
 
-    for i in range(len(all_runs)):
+    for i in sweep_ds.index.index:
         # Plot C vs r
         ax1.plot(r, corrFunctions[i], 'o', label=r'T={}, $\zeta={}$'.format(round(temps[i],2), round(corrLengths[i],2)), color=colors[i%len(colors)])
         ax1.plot(np.linspace(0,r[-1],100), np.exp(-np.linspace(0,r[-1],100) / corrLengths[i] ), '--', color=colors[i%len(colors)])
 
         # Plot E_dip
-        ax4.plot(timesteps, E_dips[i], label=r'T={}'.format(round(temps[i],2)))
+        energy = fsd.read_table(sweep_ds.tablefile("energy")[i])
+        ax4.plot(energy['t'], energy['E_dip'], label=r'T={}'.format(round(temps[i],2)))
 
     ax1.legend()
     ax1.set_xlabel("r [a]")
