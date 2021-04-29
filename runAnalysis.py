@@ -81,7 +81,7 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
     analysisID    = tools.getAnalysisId(out_directory)
     runName       = tools.getRunName(sweep_ds.basepath, temps)
     filenameBase  = os.path.join(out_directory, str(analysisID) + "_" + runName)
-    tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
+    tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
 
     if createPlots:
         # Analysis plots

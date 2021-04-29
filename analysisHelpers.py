@@ -397,13 +397,14 @@ def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, c
 
 
 
-def processResults(corrConfig, temps, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=False, filenameBase=None, printResults=True, input_path=None):
+def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=False, filenameBase=None, printResults=True, input_path=None):
     tempSweepResults = pd.DataFrame(
         data={'temps': temps,
               'corrLengths': corrLengths,
               'corrLengthsVar': corrLengthsVar,
               'corrSums': corrSums,
               'susceptibilities': susceptibilities,
+              'corrFunctions': [str(C) for C in corrFunctions],
              })
     parameterResults = {"T_c": T_c, "C_curie": C_curie, "A": A, "nu": nu}
 
@@ -431,9 +432,9 @@ def processResults(corrConfig, temps, corrLengths, corrLengthsVar, corrSums, sus
                 writer.writerow([k, v])
             writer.writerow([''])
             writer.writerow(['Temp sweep data'])
-            writer.writerow(["temps", "corrLengths", "corrLengthsVar", "corrSums", "susceptibilities"])
+            writer.writerow(["temps", "corrLengths", "corrLengthsVar", "corrSums", "susceptibilities", "corrFunctions"])
             for i in range(len(temps)):
-                writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i], susceptibilities[i]])
+                writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i], susceptibilities[i], str(corrFunctions[i])])
             writer.writerow([])
         print("Wrote report to file", filename)
     return tempSweepResults, parameterResults
