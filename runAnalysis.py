@@ -99,7 +99,15 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
 
 
 def fitnessFunction(sweep_ds):
-    return main_analysis(sweep_ds, returnKey = 'T_c')
+    """
+    Specify returnKey in main_analysis() to get a return value.
+    returnKey can be
+        'T_c'         critical temperature
+        'C_curie'     Curie constant
+        'A'           power law coefficient
+        'nu'          critical exponent
+    """
+    return main_analysis(sweep_ds, createPlots=False, returnKey = 'T_c')
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
