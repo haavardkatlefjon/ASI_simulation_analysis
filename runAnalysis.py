@@ -10,9 +10,6 @@ from scipy.optimize import curve_fit
 try:
     import analysisHelpers as tools
 except Exception as e:
-    print("**")
-    print(type(e), e)
-    print("**")
     import ASI_simulation_analysis.analysisHelpers as tools
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
