@@ -1,9 +1,13 @@
 # ting som tar mye plass
 *arrows.png
 *arrows.pdf
+*report.csv
+*analysis.png
+.DS_Store
 *.npz
 *.log
 *.sh
+flatspin_temp_sweeps/
 
 *.DS_Store
 
