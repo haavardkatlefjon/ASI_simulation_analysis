@@ -57,7 +57,7 @@ def tempsweep(sweep_ds):
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
 
         print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], r_k[round(0.1*len(r_k))]))
-        print("Corr length {}".format(round(corrLengths[i],2)))
+        print("Corr length {} \n".format(round(corrLengths[i],2)))
 
     return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
