@@ -13,7 +13,7 @@ except Exception as e:
     print("**")
     print(type(e), e)
     print("**")
-    import ASI_system_analysis.analysisHelpers as tools
+    import ASI_simulation_analysis.analysisHelpers as tools
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
