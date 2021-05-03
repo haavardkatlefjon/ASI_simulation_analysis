@@ -14,7 +14,7 @@ except Exception as e:
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
-    'dr':             1,     # units of lattice spacing
+    'dr':             0.2,     # units of lattice spacing
     'dtheta':         90/70,   # degrees
     'N_points_avg':   1,       # number of timeframes used to make thermal avg
     'neighbor_dist':  np.inf,  # units of lattice spacing. Distance within correlation should be checked
@@ -52,10 +52,12 @@ def tempsweep(sweep_ds):
         spinConfigs.append(spinConfiguration)
 
         # Compute correlation length by curve fitting with exp(-r/zeta)
-        print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], r_k[round(0.1*len(r_k))]))
         popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0, 10*r_k[-1]), p0=r_k[round(0.1*len(r_k))])
         corrLengths[i] = popt[0]
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
+
+        print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], r_k[round(0.1*len(r_k))]))
+        print("Corr length {}".format(round(corrLengths[i],2)))
 
     return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
@@ -158,7 +160,7 @@ if __name__ == "__main__":
                 sweep_ds.index = sweep_ds.index.iloc[int(index[0]):, :]
             else:
                 sweep_ds.index = sweep_ds.index.iloc[int(index[0]):int(index[1]), :]
-            sweep_ds.index.reset_index(inplace=True)
+            #sweep_ds.index.reset_index(inplace=True)
         except:
             print("Invalid index. Should be Python list slicing format start:end")
             sys.exit(1)
