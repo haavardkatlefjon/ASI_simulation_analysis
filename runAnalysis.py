@@ -11,11 +11,17 @@ import analysisHelpers as tools
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
-    'dr':             0.2,    # units of lattice spacing
-    'dtheta':         90/70,  # degrees
-    'N_points_avg':   1,      # number of timeframes used to make thermal avg
-    'neighbor_dist':  8,      # units of lattice spacing. Distance within correlation should be checked
+    'dr':             1,     # units of lattice spacing
+    'dtheta':         90/70,   # degrees
+    'N_points_avg':   1,       # number of timeframes used to make thermal avg
+    'neighbor_dist':  np.inf,  # units of lattice spacing. Distance within correlation should be checked
 }
+
+#@TODO! NEIGHBOR DIST FUCKUP. ALLOCATE C WHEN np.inf -> fuckings fuck. Finn på noe smart!
+#forslag: finn maksimum mulige distanse og bruk det til allokering av C
+#if sweep_ds.params['neighbor_distance'] == np.inf:
+#    round(np.amax(abs_distances) elns)
+# kjør sweep på nyeste I40 alpha 0.06...
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
@@ -33,7 +39,7 @@ def tempsweep(sweep_ds):
 
     # Loop through runs in sweep
     for i in sweep_ds.index.index:
-        print("Run {}/{}, temp={}".format(i, len(sweep_ds.index.index), sweep_ds.index.iloc[i]['temp']))
+        print("Run {}/{}, temp={}".format(i+1, len(sweep_ds.index.index), sweep_ds.index.iloc[i]['temp']))
 
         # Get 1d correlation function
         r_k, C, corrSums[i], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, i, corrConfig)
@@ -43,7 +49,8 @@ def tempsweep(sweep_ds):
         spinConfigs.append(spinConfiguration)
 
         # Compute correlation length by curve fitting with exp(-r/zeta)
-        popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0,100), p0=10)
+        print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], r_k[round(0.1*len(r_k))]))
+        popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0, 10*r_k[-1]), p0=r_k[round(0.1*len(r_k))])
         corrLengths[i] = popt[0]
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
 
@@ -107,7 +114,7 @@ def fitnessFunction(sweep_ds):
         'A'           power law coefficient
         'nu'          critical exponent
     """
-    return main_analysis(sweep_ds, createPlots=False, returnKey = 'T_c')
+    return main_analysis(sweep_ds, createPlots=True, returnKey = 'T_c')
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -147,7 +154,7 @@ if __name__ == "__main__":
             elif index[1] == '':
                 sweep_ds.index = sweep_ds.index.iloc[int(index[0]):, :]
             else:
-                sweep_ds.index = sweep_ds.index.iloc[int(index[0]):int(index[0]), :]
+                sweep_ds.index = sweep_ds.index.iloc[int(index[0]):int(index[1]), :]
             sweep_ds.index.reset_index(inplace=True)
         except:
             print("Invalid index. Should be Python list slicing format start:end")

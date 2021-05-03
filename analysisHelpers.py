@@ -62,10 +62,10 @@ def getNeighborList(pos, params, neighborDistance = None):
     # Construct KDTree for every position
     tree = cKDTree(pos)
 
-    if neighborDistance != None:
-        params['neighbor_distance'] = neighborDistance
+    if neighborDistance == None:
+        neighborDistance = params['neighbor_distance']
 
-    nd = params['lattice_spacing'] * params['neighbor_distance']
+    nd = params['lattice_spacing'] * neighborDistance
     nd += 1e-5 # pad to avoid rounding errors
 
     for i in range(len(pos)):
@@ -149,13 +149,27 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
     distances       = getDistanceMatrix(pos)
     absDistances    = abs(distances)
 
+    absEuclidianDist = np.sqrt(absDistances[:,:,0]**2 + absDistances[:,:,1]**2)
+    absEuclidianDist = absEuclidianDist[absEuclidianDist>0]
+    print("min euclid dist", np.amin(absEuclidianDist))
+
+    dr = dr * np.amin(absEuclidianDist)
+
+    print("Setting dr = {}".format(dr))
+
+    if neighbor_dist == np.inf:
+        # using maximum separation as proxy for np.inf neighbor distance
+        r_max = np.amax(absEuclidianDist)
+        neighbor_dist = 0.25 * r_max
+        print("setting neighbor dist to {}".format(neighbor_dist))
+
     # get list of neighbors for each magnet
     neighborList = getNeighborList(pos, sweep_ds.params, neighborDistance=neighbor_dist)
 
     # Prepare array to store correlation values
     C = np.zeros((N_points_avg,
-                  round(sweep_ds.params['lattice_spacing'] * (sweep_ds.params['neighbor_distance'] + 4) / dr) ,  # number of radial bins
-                  round(90/dtheta)                                                                   # number of angular bins
+                  round(sweep_ds.params['lattice_spacing'] * 1.1 * neighbor_dist / dr) ,   # number of radial bins, 10% extra
+                  round(90/dtheta)                                                         # number of angular bins
                   ))
 
     allSpinConfiguration = fsd.read_table(sweep_ds.tablefile("spin")[run_index])
@@ -204,6 +218,8 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
     nan_index = np.argwhere(np.isnan(C))
     r_k = np.delete(r_k, nan_index)
     C = np.delete(C, nan_index)
+
+    print("Finished. r_k shape {}, C shape {}".format(r_k.shape, C.shape))
 
     return r_k, C, C_sum, avgPairsInBin, spinConfiguration
 
@@ -336,7 +352,7 @@ def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, di
     fig = plt.figure(1, figsize=(30,30))
     for i in range(len(sweep_ds.index.index)):
         ax = fig.add_subplot(rows,cols,plotPosIndex[i])
-        plotSpinSystem(spinConfigs[i], pos, angle, title=sweep_ds.index.iloc[i]['temp'], axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=True)
+        plotSpinSystem(spinConfigs[i], pos, angle, title=sweep_ds.index.iloc[i]['temp'], axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=False)
 
     if saveFile:
         filename = filenameBase + "-plots-arrows" + ".pdf"
