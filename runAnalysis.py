@@ -7,7 +7,13 @@ import matplotlib.pyplot as plt
 import flatspin.data as fsd
 from scipy.optimize import curve_fit
 
-import analysisHelpers as tools
+try:
+    import analysisHelpers as tools
+except Exception as e:
+    print("**")
+    print(type(e), e)
+    print("**")
+    import ASI_system_analysis.analysisHelpers as tools
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
