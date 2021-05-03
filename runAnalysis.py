@@ -41,7 +41,7 @@ def tempsweep(sweep_ds):
     corrSums       = np.zeros(sweep_length)
 
     # Loop through runs in sweep
-    for i in sweep_ds.index.index:
+    for i in range(len(sweep_ds.index.index)):
         print("Run {}/{}, temp={}".format(i+1, len(sweep_ds.index.index), sweep_ds.index.iloc[i]['temp']))
 
         # Get 1d correlation function
@@ -78,7 +78,7 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds)
 
     # Extract end temperatures in simulations
-    temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in sweep_ds.index.index])
+    temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
     susceptibilities = tools.flucDissSusceptibility(temps, corrSums)
