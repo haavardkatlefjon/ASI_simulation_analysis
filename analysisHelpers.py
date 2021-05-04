@@ -206,7 +206,7 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
         C[ti, (counter == 0)] = np.nan
         C[ti, :, :] /= counter
 
-        C_sum[ti] = np.nansum(C[ti, :round(10*dr), :])
+        C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array. sum -> 0 as r -> inf
 
         C[ti, :, :] = abs(C[ti, :, :])
 

@@ -62,8 +62,6 @@ def tempsweep(sweep_ds):
     return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
 
-
-
 def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True, returnKey = None):
     # Print start info
     startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs) \n".format(sweep_ds.basepath, len(sweep_ds.index.index))
