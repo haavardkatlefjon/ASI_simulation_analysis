@@ -14,7 +14,7 @@ except Exception as e:
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
-    'dr':             0.2,     # units of lattice spacing
+    'dr':             0.5,     # units of lattice spacing
     'dtheta':         90/70,   # degrees
     'N_points_avg':   1,       # number of timeframes used to make thermal avg
     'neighbor_dist':  np.inf,  # units of lattice spacing. Distance within correlation should be checked
@@ -29,7 +29,7 @@ corrConfig = {
 
 
 # def tempsweep(input_path, all_runs):
-def tempsweep(sweep_ds):
+def tempsweep(sweep_ds, temps):
     """ Compute correlation lengths for all runs within a sweep directory """
     # Arrays for storing data
     sweep_length   = len(sweep_ds.index.index)
@@ -42,7 +42,7 @@ def tempsweep(sweep_ds):
 
     # Loop through runs in sweep
     for i in range(len(sweep_ds.index.index)):
-        print("Run {}/{}, temp={}".format(i+1, len(sweep_ds.index.index), sweep_ds.index.iloc[i]['temp']))
+        print("Run {}/{}, temp={}".format(i+1, len(sweep_ds.index.index), temps[i]))
 
         # Get 1d correlation function
         r_k, C, corrSums[i], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, i, corrConfig)
@@ -69,14 +69,14 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
     print(startInfo)
     tools.printConfig(corrConfig)
     print("\nflatspin runs")
-    print(sweep_ds.index)
+    print(sweep_ds.index['outdir'])
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
-
-    # Get correlation lengths
-    corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds)
 
     # Extract end temperatures in simulations
     temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
+
+    # Get correlation lengths
+    corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
     susceptibilities = tools.flucDissSusceptibility(temps, corrSums)

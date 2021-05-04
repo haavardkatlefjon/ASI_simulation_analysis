@@ -230,8 +230,16 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
 
 
 def getEndTemp(temp_string):
-    temp = temp_string[1:-1]
-    temp = float(temp.split(', ')[1])
+    if len(temp_string) > 1000:
+        temp_string = temp_string[-100:]
+        temp_string = temp_string.split(',')[-1]
+        temp_string = temp_string.strip()
+        temp_string = temp_string.replace(')','')
+        temp_string = temp_string.replace(']','')
+        temp = float(temp_string)
+    else:
+        temp = temp_string[1:-1]
+        temp = float(temp.split(', ')[1])
     return temp
 
 
@@ -347,10 +355,13 @@ def getRowsCols(totalNum):
     return rows, cols
 
 def getSubplotTitle(tempString):
-    start = tempString.index('[')+1
-    end = tempString.index(']')
-    title = tempString[start:end]
-    title = str([round(float(T),1) for T in title.split(',')])
+    if len(tempString) > 1000:
+        title = 'T={}'.format(round(getEndTemp(tempString),1))
+    else:
+        start = tempString.index('[')+1
+        end = tempString.index(']')
+        title = tempString[start:end]
+        title = str([round(float(T),1) for T in title.split(',')])
     return title
 
 def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, directory=''):
