@@ -346,6 +346,12 @@ def getRowsCols(totalNum):
         rows, cols = (5,5)
     return rows, cols
 
+def getSubplotTitle(tempString):
+    start = tempString.index('[')+1
+    end = tempString.index(']')
+    title = tempString[start:end]
+    title = str([round(float(T),1) for T in title.split(',')])
+    return title
 
 def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, directory=''):
     pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[0])
@@ -357,7 +363,8 @@ def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, di
     fig = plt.figure(1, figsize=(30,30))
     for i in range(len(sweep_ds.index.index)):
         ax = fig.add_subplot(rows,cols,plotPosIndex[i])
-        plotSpinSystem(spinConfigs[i], pos, angle, title=sweep_ds.index.iloc[i]['temp'], axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=False)
+        title = getSubplotTitle(sweep_ds.index.iloc[i]['temp'])
+        plotSpinSystem(spinConfigs[i], pos, angle, title=title, axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=True)
 
     if saveFile:
         filename = filenameBase + "-plots-arrows" + ".pdf"

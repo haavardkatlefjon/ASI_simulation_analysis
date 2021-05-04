@@ -14,7 +14,7 @@ except Exception as e:
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
-    'dr':             0.5,     # units of lattice spacing
+    'dr':             0.2,     # units of lattice spacing
     'dtheta':         90/70,   # degrees
     'N_points_avg':   1,       # number of timeframes used to make thermal avg
     'neighbor_dist':  np.inf,  # units of lattice spacing. Distance within correlation should be checked
