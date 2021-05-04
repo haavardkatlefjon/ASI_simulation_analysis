@@ -172,6 +172,8 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
                   round(90/dtheta)                                                         # number of angular bins
                   ))
 
+    C_sum = np.zeros(N_points_avg)
+
     allSpinConfiguration = fsd.read_table(sweep_ds.tablefile("spin")[run_index])
     timeframes = [len(allSpinConfiguration.index)-1]
 
@@ -196,20 +198,26 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
                                     min( C.shape[2]-1, int(theta / (np.pi/2) * nBinsTheta))
                                     ], dtype=np.int32)
 
-                C[ti, index[0], index[1]] += spinCorrelation
+                #if index[0] == 8:
+                #    print("--> ", index, spinCorrelation)
+                C[ti, index[0], index[1]]   += spinCorrelation
                 counter[index[0], index[1]] += 1
 
         C[ti, (counter == 0)] = np.nan
         C[ti, :, :] /= counter
+
+        C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array. sum -> 0 as r -> inf
+
         C[ti, :, :] = abs(C[ti, :, :])
 
     counter[counter == 0] = np.nan
     avgPairsInBin = np.nanmean(counter)
+    print("avgPairsInBin", avgPairsInBin)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        C_sum = np.nansum(np.nanmean(C, axis=0))
-        # collapse polar dimension, only keeoping r
+        # C_sum = np.nansum(np.nanmean(C, axis=0))
+        # collapse polar dimension, only keeping r
         C = np.nanmean(C, axis=2)
         # average over random timeframes
         C = np.nanmean(C, axis=0)
@@ -218,8 +226,7 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
     nan_index = np.argwhere(np.isnan(C))
     r_k = np.delete(r_k, nan_index)
     C = np.delete(C, nan_index)
-
-    print("Finished. r_k shape {}, C shape {}".format(r_k.shape, C.shape))
+    C_sum = np.mean(C_sum)
 
     return r_k, C, C_sum, avgPairsInBin, spinConfiguration
 
@@ -367,7 +374,7 @@ def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, c
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10,10))
 
-    for i in sweep_ds.index.index:
+    for i in range(len(sweep_ds.index.index)):
         # Plot C vs r
         ax1.plot(r, corrFunctions[i], 'o', label=r'T={}, $\zeta={}$'.format(round(temps[i],2), round(corrLengths[i],2)), color=colors[i%len(colors)])
         ax1.plot(np.linspace(0,r[-1],100), np.exp(-np.linspace(0,r[-1],100) / corrLengths[i] ), '--', color=colors[i%len(colors)])
