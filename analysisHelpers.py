@@ -197,9 +197,7 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
                 index = np.array([  round( r / dr ),
                                     min( C.shape[2]-1, int(theta / (np.pi/2) * nBinsTheta))
                                     ], dtype=np.int32)
-
-                #if index[0] == 8:
-                #    print("--> ", index, spinCorrelation)
+                
                 C[ti, index[0], index[1]]   += spinCorrelation
                 counter[index[0], index[1]] += 1
 
@@ -208,7 +206,7 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
 
         C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array. sum -> 0 as r -> inf
 
-        C[ti, :, :] = abs(C[ti, :, :])
+        C[ti, :, :] = abs(C[ti, :round(neighbor_dist/dr), :])
 
     counter[counter == 0] = np.nan
     avgPairsInBin = np.nanmean(counter)
