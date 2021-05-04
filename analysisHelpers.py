@@ -415,6 +415,8 @@ def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, c
     ax4.set_xlabel("time")
     ax4.set_ylabel("E_dip")
 
+    fig.tight_layout()
+
     if saveFile:
         filename = filenameBase + "-plots-analysis" + ".png"
         fig.savefig(filename, format = 'png', dpi=300, transparent=False)
