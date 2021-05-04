@@ -278,7 +278,7 @@ def corrLengthPowerLaw(X, A, nu):
 
 def getCriticalExponent(temps, corrLengths, T_c):
     try:
-        popt, pcov = curve_fit(corrLengthPowerLaw, (temps, T_c*np.ones(temps.shape)), corrLengths)
+        popt, pcov = curve_fit(corrLengthPowerLaw, (temps, T_c*np.ones(temps.shape)), corrLengths, p0=[5.0, 0.5], bounds=([0.0, 0.0], [np.inf, 10.0]))
         A, nu = popt
     except RuntimeError:
         print("RuntimeError: corrLengthPowerLaw could not be estimated")
