@@ -69,7 +69,10 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
     print(startInfo)
     tools.printConfig(corrConfig)
     print("\nflatspin runs")
-    print(sweep_ds.index['outdir'])
+    if 'T_end' in sweep_ds.index.columns:
+        print(sweep_ds.index[['T_end', 'outdir']])
+    else:
+        print(sweep_ds.index[['temp', 'outdir']])
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
 
     # Extract end temperatures in simulations
