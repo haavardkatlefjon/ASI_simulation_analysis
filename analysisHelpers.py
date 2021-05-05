@@ -220,7 +220,7 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
         # average over random timeframes
         C = np.nanmean(C, axis=0)
 
-    r_k = np.arange(0, C.shape[0]*dr, dr)#[:C.shape[0]]
+    r_k = np.linspace(0, C.shape[0]*dr, C.shape[0])
     nan_index = np.argwhere(np.isnan(C))
     r_k = np.delete(r_k, nan_index)
     C = np.delete(C, nan_index)
