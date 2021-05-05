@@ -139,6 +139,11 @@ if __name__ == "__main__":
                            metavar='index',
                            type=str,
                            help='Specify if just a subset of a simulation should be used')
+    my_parser.add_argument('-d',
+                           '--drop',
+                           metavar='drop',
+                           type=str,
+                           help='Drop one (int) or more ([list of int]) runs')
 
     # Execute the parse_args() method
     args = my_parser.parse_args()
@@ -164,6 +169,19 @@ if __name__ == "__main__":
             #sweep_ds.index.reset_index(inplace=True)
         except:
             print("Invalid index. Should be Python list slicing format start:end")
+            sys.exit(1)
+
+    if args.drop != None:
+        try:
+            if tools.isFloat(args.drop):
+                args.drop = int(args.drop)
+                if args.index != None:
+                    if index[0] != '':
+                        args.drop += int(index[0])
+                sweep_ds.index.drop(int(args.drop), inplace=True)
+        except Exception as e:
+            print("Could not drop requested rows")
+            print(type(e), e)
             sys.exit(1)
 
 
