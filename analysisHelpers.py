@@ -25,6 +25,11 @@ k_B     = 1.38064852e-23        # m2 kg s-2 K-1, Boltzmann
 def flucDissSusceptibility(temp, C_sum):
     return m**2 / (k_B * temp) * C_sum
 
+def invSusceptibilityStd(temp, corrSums):
+    chi = flucDissSusceptibility(temp, corrSums[:,0])
+    # Error propagation formula
+    std = (1/chi) * (1/corrSums[:,0]) * corrSums[:,1]
+    return std
 
 def expfunc(r, r0):
     return np.exp(-r / r0)
@@ -243,6 +248,15 @@ def getEndTemp(temp_string):
     return temp
 
 
+def getTemps(sweep_ds):
+    if 'T_end' in sweep_ds.index.columns:
+        temps = sweep_ds.index['T_end'].to_numpy()
+        temps = np.unique(temps) # unique temps only
+    else:
+        temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
+    return temps
+
+
 def getCriticalTemp(temps, susceptibilities):
     linearFit = np.polyfit(temps, 1/susceptibilities, 1)
     C_curie   = 1 / linearFit[0]
@@ -355,6 +369,9 @@ def getRowsCols(totalNum):
     return rows, cols
 
 def getSubplotTitle(tempString):
+    if isFloat(tempString):
+        return tempString
+
     if len(tempString) > 1000:
         title = 'T={}'.format(round(getEndTemp(tempString),1))
     else:
@@ -366,15 +383,19 @@ def getSubplotTitle(tempString):
 
 def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, directory=''):
     pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[0])
-    rows, cols = getRowsCols(len(sweep_ds.index.index))
+    rows, cols = getRowsCols(len(temps))
 
     # plot position index
-    plotPosIndex = range(1,len(sweep_ds.index.index) + 1)
+    plotPosIndex = range(1,len(temps) + 1)
+    stepsize = 1
+
+    if 'group_id' in sweep_ds.index.columns:
+        stepsize = len(np.unique(sweep_ds.index['group_id'].to_numpy()))
 
     fig = plt.figure(1, figsize=(30,30))
-    for i in range(len(sweep_ds.index.index)):
+    for i in range(len(temps)):
         ax = fig.add_subplot(rows,cols,plotPosIndex[i])
-        title = getSubplotTitle(sweep_ds.index.iloc[i]['temp'])
+        title = getSubplotTitle(temps[i])
         plotSpinSystem(spinConfigs[i], pos, angle, title=title, axObject=ax, labelIndex=False, colorCorrelation=None, colorSpin=True, removeFrame=True)
 
     if saveFile:
@@ -386,11 +407,11 @@ def plotASEs(sweep_ds, filenameBase, spinConfigs, temps=None, saveFile=False, di
         plt.show()
 
 
-def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, saveFile=False, directory=''):
+def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd=[None], saveFile=False, directory=''):
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10,10))
 
-    for i in range(len(sweep_ds.index.index)):
+    for i in range(len(temps)):
         # Plot C vs r
         ax1.plot(r, corrFunctions[i], 'o', label=r'T={}, $\zeta={}$'.format(round(temps[i],2), round(corrLengths[i],2)), color=colors[i%len(colors)])
         ax1.plot(np.linspace(0,r[-1],100), np.exp(-np.linspace(0,r[-1],100) / corrLengths[i] ), '--', color=colors[i%len(colors)])
@@ -415,7 +436,13 @@ def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, c
 
     # Plot susceptibilities
     ax3.plot(np.linspace(temps[0], 1.1*temps[-1], 100), 1/curieWeissSusceptibility(np.linspace(temps[0], 1.1*temps[-1], 100), C_curie, T_c), '-', label=r"Curie-Weiss $T_C={}$K".format(round(T_c, 2)))
-    ax3.plot(temps, 1/susceptibilities, 'o', label="Flux-Dissip theorem")
+
+    if len(invSusceptibilitiesStd) > 1:
+        ax3.errorbar(temps, 1/susceptibilities, yerr=invSusceptibilitiesStd, label="Flux-Dissip theorem", fmt='o', capsize=5)
+        # errorbar(x, y, yerr=None, xerr=None, fmt='', ecolor=None, elinewidth=None, capsize=None, barsabove=False, lolims=False, uplims=False, xlolims=False, xuplims=False, errorevery=1, capthick=None, *, data=None, **kwargs)[source]¶
+    else:
+        ax3.plot(temps, 1/susceptibilities, 'o', label="Flux-Dissip theorem")
+
     ax3.set_xlabel("T [K]")
     ax3.set_ylabel(r"$\chi^{-1}$")
     ax3.set_ylim(min(1.1*min(1/susceptibilities), 0.9*min(1/susceptibilities)), 1.1*max(1/susceptibilities))
@@ -443,7 +470,8 @@ def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar
         data={'temps': temps,
               'corrLengths': corrLengths,
               'corrLengthsVar': corrLengthsVar,
-              'corrSums': corrSums,
+              'corrSums': corrSums[:,0],
+              'corrSumsStd': corrSums[:,1],
               'susceptibilities': susceptibilities,
               'corrFunctions': [str(C) for C in corrFunctions],
              })

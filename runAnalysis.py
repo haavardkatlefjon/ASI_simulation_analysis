@@ -28,36 +28,63 @@ corrConfig = {
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
-# def tempsweep(input_path, all_runs):
 def tempsweep(sweep_ds, temps):
     """ Compute correlation lengths for all runs within a sweep directory """
     # Arrays for storing data
-    sweep_length   = len(sweep_ds.index.index)
+    if len(temps) < len(sweep_ds.index.index):
+        assert 'group_id' in sweep_ds.index.columns, 'group_id not a column in dataset'
+        print("Several runs per temp")
+        groups = np.unique(sweep_ds.index['group_id'].to_numpy())
+        print("groups", groups)
+    else:
+        groups = np.array([0])
+
+
+    sweep_length   = len(temps)
     corrFunctions  = []
     r_k            = []
     spinConfigs    = []
+    corrSums       = np.zeros((sweep_length, len(groups)))
     corrLengths    = np.zeros(sweep_length)
     corrLengthsVar = np.zeros(sweep_length)
-    corrSums       = np.zeros(sweep_length)
 
     # Loop through runs in sweep
-    for i in range(len(sweep_ds.index.index)):
-        print("Run {}/{}, temp={}".format(i+1, len(sweep_ds.index.index), temps[i]))
+    for i in range(sweep_length):
+        print("Run {}/{}, temp={}".format(i+1, sweep_length, temps[i]))
 
-        # Get 1d correlation function
-        r_k, C, corrSums[i], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, i, corrConfig)
+        C_this_temp = []
+        for g_id in groups:
+
+            if len(groups) > 1:
+                run_index = sweep_ds.index.index[
+                                (sweep_ds.index['T_end'] == temps[i]).to_numpy()*
+                                (sweep_ds.index['group_id'] == g_id).to_numpy()
+                                ].tolist()[0]
+            else:
+                run_index = i
+            # Get 1d correlation function
+            r_k, C, corrSums[i,g_id], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, run_index, corrConfig)
+
+            C_this_temp.append(C)
+
+        C_this_temp = np.array(C_this_temp)
+        C = np.mean(C_this_temp, axis=0)
 
         # Store C in array for later use (plotting)
         corrFunctions.append(C)
         spinConfigs.append(spinConfiguration)
 
         # Compute correlation length by curve fitting with exp(-r/zeta)
-        popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0, 10*r_k[-1]), p0=r_k[round(0.1*len(r_k))])
+        p0 = r_k[round(0.5*len(r_k))]
+        popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0, 10*r_k[-1]), p0=p0)
         corrLengths[i] = popt[0]
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
-
-        print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], r_k[round(0.1*len(r_k))]))
+        print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], p0))
         print("Corr length {} \n".format(round(corrLengths[i],2)))
+
+    corrSumsMean = np.mean(corrSums, axis=1)
+    corrSumsStd = np.std(corrSums, axis=1)
+    corrSums = np.vstack((corrSumsMean, corrSumsStd)).T
 
     return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
@@ -68,21 +95,31 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
     print(startInfo)
     tools.printConfig(corrConfig)
-    print("\nflatspin runs")
+    print()
+
+    columns_to_show = []
     if 'T_end' in sweep_ds.index.columns:
-        print(sweep_ds.index[['T_end', 'outdir']])
+        columns_to_show.append('T_end')
     else:
-        print(sweep_ds.index[['temp', 'outdir']])
+        columns_to_show.append('temp')
+    if 'group_id' in sweep_ds.index.columns:
+        columns_to_show.append('group_id')
+    columns_to_show.append('outdir')
+
+    print(sweep_ds.index[columns_to_show])
+
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
 
     # Extract end temperatures in simulations
-    temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
+    #temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
+    temps = tools.getTemps(sweep_ds)
 
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
-    susceptibilities = tools.flucDissSusceptibility(temps, corrSums)
+    susceptibilities    = tools.flucDissSusceptibility(temps, corrSums[:,0])
+    invSusceptibilitiesStd = tools.invSusceptibilityStd(temps, corrSums)
 
     # Find critical temperature, T_c
     T_c, C_curie = tools.getCriticalTemp(temps, susceptibilities)
@@ -98,7 +135,7 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
 
     if createPlots:
         # Analysis plots
-        tools.plotAnalysis(sweep_ds, filenameBase, temps, r_k, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, saveFile=True, directory=out_directory)
+        tools.plotAnalysis(sweep_ds, filenameBase, temps, r_k, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd=invSusceptibilitiesStd, saveFile=True, directory=out_directory)
 
         # Spin config plots
         tools.plotASEs(sweep_ds, filenameBase, spinConfigs, temps, saveFile=True, directory=out_directory)
