@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import csv
 import argparse
 import matplotlib.pyplot as plt
 import flatspin.data as fsd
@@ -160,17 +161,48 @@ def fitnessFunction(sweep_ds):
     return main_analysis(sweep_ds, createPlots=True, returnKey = 'T_c')
 
 
+def main_existing_analysis(path, args, out_directory='analysis_output', createPlots = True):
+    data = tools.readData(path, args)
+
+    # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
+    susceptibilities    = tools.flucDissSusceptibility(data['temps'], data['corrSumMean'])
+    invSusceptibilitiesStd = tools.invSusceptibilityStd(data['temps'], np.vstack((data['corrSumMean'], data['corrSumStd'])).T)
+
+    # Find critical temperature, T_c
+    T_c, C_curie = tools.getCriticalTemp(data['temps'], susceptibilities)
+
+    # determine critical parameter
+    A, nu = tools.getCriticalExponent(data['temps'], data['corrLengths'], T_c)
+
+    analysisID    = tools.getAnalysisId(out_directory)
+    runName       = tools.getRunName(os.path.basename(path), data['temps'])
+    filenameBase  = os.path.join(out_directory, str(analysisID) + "_" + runName)
+    #tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
+
+    if createPlots:
+        # Analysis plots
+        tools.plotAnalysisSimplified(filenameBase, data['temps'], data['corrLengths'], data['corrLengthsVar'], susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd=invSusceptibilitiesStd, saveFile=True, directory=out_directory)
+
+
+
+
+
+
+
+
+
+
+
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 if __name__ == "__main__":
     # Create the parser
     my_parser = argparse.ArgumentParser(description='Arguments for analysis')
 
     # Add the arguments
-    my_parser.add_argument('-o',
-                           '--path',
-                           metavar='path',
-                           type=str,
-                           help='the directory containing files from a flatspin run')
+    my_parser.add_argument("path",
+                            type=str,
+                            help='the directory containing files from a flatspin run or an analysis number for reuse of existing analysis')
     my_parser.add_argument('-i',
                            '--index',
                            metavar='index',
@@ -181,50 +213,67 @@ if __name__ == "__main__":
                            metavar='drop',
                            type=str,
                            help='Drop one (int) or more ([list of int]) runs')
+    my_parser.add_argument('-t',
+                           '--temp',
+                           metavar='temp',
+                           type=str,
+                           help='Temp range to use. Python list slicing format.')
 
     # Execute the parse_args() method
     args = my_parser.parse_args()
 
     # Check the directory exists
-    if not os.path.isdir(args.path):
+    if tools.isFloat(args.path):
+        path = tools.existingAnalysis(id = int(args.path))
+        if path != None:
+            print("Existing analysis. Opening {}".format(path))
+            main_existing_analysis(path, args)
+        else:
+            print("Could not find analysis with id {}".format(args.path))
+            sys.exit(1)
+
+    elif not os.path.isdir(args.path):
         print('The path specified does not exist')
         sys.exit(1)
 
-    # Read flatspin sweep data
-    sweep_ds = fsd.Dataset.read(args.path)
-
-    # Slice run of -i argument specified
-    if args.index != None:
-        try:
-            index = args.index.split(':')
-            if index[0] == '':
-                sweep_ds.index = sweep_ds.index.iloc[:int(index[1]), :]
-            elif index[1] == '':
-                sweep_ds.index = sweep_ds.index.iloc[int(index[0]):, :]
-            else:
-                sweep_ds.index = sweep_ds.index.iloc[int(index[0]):int(index[1]), :]
-            #sweep_ds.index.reset_index(inplace=True)
-        except:
-            print("Invalid index. Should be Python list slicing format start:end")
-            sys.exit(1)
-
-    if args.drop != None:
-        try:
-            if tools.isFloat(args.drop):
-                args.drop = int(args.drop)
-                if args.index != None:
-                    if index[0] != '':
-                        args.drop += int(index[0])
-                sweep_ds.index.drop(int(args.drop), inplace=True)
-        except Exception as e:
-            print("Could not drop requested rows")
-            print(type(e), e)
-            sys.exit(1)
-
-
-    if 'temp' in sweep_ds.index.columns:
-        #main_analysis(sweep_ds)
-        fitnessFunction(sweep_ds)
     else:
-        print("Not a temp sweep simulation")
-        sys.exit(1)
+        print("Loading flatspin dataset")
+
+        # Read flatspin sweep data
+        sweep_ds = fsd.Dataset.read(args.path)
+
+        # Slice run of -i argument specified
+        if args.index != None:
+            try:
+                index = args.index.split(':')
+                if index[0] == '':
+                    sweep_ds.index = sweep_ds.index.iloc[:int(index[1]), :]
+                elif index[1] == '':
+                    sweep_ds.index = sweep_ds.index.iloc[int(index[0]):, :]
+                else:
+                    sweep_ds.index = sweep_ds.index.iloc[int(index[0]):int(index[1]), :]
+                #sweep_ds.index.reset_index(inplace=True)
+            except:
+                print("Invalid index. Should be Python list slicing format start:end")
+                sys.exit(1)
+
+        if args.drop != None:
+            try:
+                if tools.isFloat(args.drop):
+                    args.drop = int(args.drop)
+                    if args.index != None:
+                        if index[0] != '':
+                            args.drop += int(index[0])
+                    sweep_ds.index.drop(int(args.drop), inplace=True)
+            except Exception as e:
+                print("Could not drop requested rows")
+                print(type(e), e)
+                sys.exit(1)
+
+
+        if 'temp' in sweep_ds.index.columns:
+            #main_analysis(sweep_ds)
+            fitnessFunction(sweep_ds)
+        else:
+            print("Not a temp sweep simulation")
+            sys.exit(1)

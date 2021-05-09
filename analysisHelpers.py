@@ -464,6 +464,46 @@ def plotAnalysis(sweep_ds, filenameBase, temps, r, corrFunctions, corrLengths, c
         plt.show()
 
 
+def plotAnalysisSimplified(filenameBase, temps, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd, saveFile=False, directory=''):
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10,10))
+
+
+    # Plot corr lengths
+    ax1.plot(temps, corrLengths, 'o', label="from exp curve fit")
+    ax1.plot(np.linspace(0, 1.1*temps[-1], 100), corrLengthPowerLaw((np.linspace(0, 1.1*temps[-1], 100), T_c*np.ones(100)), A, nu), '-', label=r"power law ($\nu={}$, $A={}$)".format(round(nu,2), round(A,2)))
+    ax1.set_xlabel("Temp")
+    ax1.set_ylabel(r"$\zeta$")
+    ax1.set_ylim(-0.1, 1.5*np.amax(corrLengths))
+    ax1.legend()
+
+    # Plot susceptibilities
+    ax2.plot(np.linspace(temps[0], 1.1*temps[-1], 100), 1/curieWeissSusceptibility(np.linspace(temps[0], 1.1*temps[-1], 100), C_curie, T_c), '-', label=r"Curie-Weiss $T_C={}$K".format(round(T_c, 2)))
+
+    if len(invSusceptibilitiesStd) > 1:
+        ax2.errorbar(temps, 1/susceptibilities, yerr=invSusceptibilitiesStd, label="Flux-Dissip theorem", fmt='o', capsize=5)
+        # errorbar(x, y, yerr=None, xerr=None, fmt='', ecolor=None, elinewidth=None, capsize=None, barsabove=False, lolims=False, uplims=False, xlolims=False, xuplims=False, errorevery=1, capthick=None, *, data=None, **kwargs)[source]¶
+    else:
+        ax2.plot(temps, 1/susceptibilities, 'o', label="Flux-Dissip theorem")
+
+    ax2.set_xlabel("T [K]")
+    ax2.set_ylabel(r"$\chi^{-1}$")
+    ax2.set_ylim(min(1.1*min(1/susceptibilities), 0.9*min(1/susceptibilities)), 1.1*max(1/susceptibilities))
+    ax2.set_xlim(0.9*min(temps), 1.1*max(temps))
+    ax2.legend()
+
+    fig.tight_layout()
+
+    if saveFile:
+        filename = filenameBase + "-plots-analysis" + ".png"
+        fig.savefig(filename, format = 'png', dpi=300, transparent=False)
+        print("Stored file", filename)
+        plt.clf()
+    else:
+        plt.show()
+
+
+
 
 def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=False, filenameBase=None, printResults=True, input_path=None):
     tempSweepResults = pd.DataFrame(
@@ -519,6 +559,72 @@ def getAnalysisId(out_directory):
             maxID = max(maxID, int(thisID))
     return maxID + 1
 
+
+def existingAnalysis(id, directory="analysis_output"):
+    for fname in os.listdir(directory):
+        test_id = fname.split("_")[0]
+        if test_id == str(id) and fname[-3:] == "csv":
+            return os.path.join(directory, fname)
+    return
+
+def readData(path, args):
+    data = {}
+    with open(path) as csv_file:
+        readingData = False
+        foundStart = False
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        for row in csv_reader:
+            if row == [] or row == [''] or row == None or row == '':
+                continue
+            elif row[0] == 'Temp sweep data':
+                foundStart = True
+                continue
+            elif foundStart:
+                dataKeys = row
+                for key in dataKeys:
+                    data[key] = []
+                foundStart = False
+                readingData = True
+                continue
+            elif readingData:
+                for i, c in enumerate(row):
+                    if isFloat(c):
+                        data[dataKeys[i]].append(float(c))
+                    else:
+                        data[dataKeys[i]].append(c)
+    data['temps'] = np.array(data['temps'])
+    data['corrLengths'] = np.array(data['corrLengths'])
+    data['corrLengthsVar'] = np.array(data['corrLengthsVar'])
+
+    corrSumMean = []
+    corrSumStd = []
+    for v in data['corrSums']:
+        v = v[1:-1].split(" ")
+        corrSumMean.append(float(v[0]))
+        corrSumStd.append(float(v[1]))
+    data['corrSumMean'] = np.array(corrSumMean)
+    data['corrSumStd'] = np.array(corrSumStd)
+
+    if args.temp != None:
+        try:
+            temp = args.temp.split(':')
+            mask = np.array([True for i in range(len(data['temps']))])
+            if temp[0] != '':
+                mask *= data['temps'] > float(temp[0])
+            if temp[1] != '':
+                mask *= data['temps'] < float(temp[1])
+
+            sliceStart = np.where(mask)[0][0]
+            sliceEnd = np.where(mask)[0][-1]+1
+
+            for key in data.keys():
+                data[key] = data[key][sliceStart:sliceEnd]
+
+        except Exception as e:
+            print("Invalid index. Should be Python list slicing format start:end")
+            sys.exit(1)
+
+    return data
 
 def getRunName(input_path, temps):
     elements = os.path.basename(input_path).split('_')

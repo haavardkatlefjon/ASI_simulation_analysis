@@ -39,22 +39,13 @@ def plotCorrSumRandomSpin(fs_path):
         np.savetxt(fname, np.vstack((temp, corrSums)).T)
         print("Stored data in file {}".format(fname))
 
-    print("temp")
-    print(temp)
-    print()
-    print("corrSums")
-    print(corrSums)
-    print()
-    print("**************")
-    print("Average corrSum = {}".format(np.mean(corrSums)))
-    print("**************")
-    print()
 
     plt.scatter(temp, corrSums, alpha=0.5)
     # plt.axhline(y=np.mean(corrSums), linestyle='--', color='black')
     plt.grid()
     plt.xlabel('temp')
     plt.ylabel('corrSum')
+    plt.title(" ".join(os.path.basename(fs_path)[:-4].split("_")))
     plt.show()
 
 
@@ -67,4 +58,6 @@ def plotCorrSumRandomSpin(fs_path):
 # plotCorrSumRandomSpin("flatspin_temp_sweeps/randomInit")
 # plotCorrSumRandomSpin("flatspin_temp_sweeps/I40_alpha_0.0187_temps_1-2000_runs_16")
 # plotCorrSumRandomSpin("wip/corrSum_I40_alpha_0.0187_temps_1-2000_runs_16.csv")
-plotCorrSumRandomSpin("flatspin_temp_sweeps/I40_alpha_0.0187_temps_1-3000_runs_4x2/")
+#plotCorrSumRandomSpin("flatspin_temp_sweeps/I40_alpha_0.0187_temps_1-2500_runs_16x10")
+# plotCorrSumRandomSpin("flatspin_temp_sweeps/I40_alpha_0.0019_temps_1-2500_runs_16x10")
+plotCorrSumRandomSpin("wip/corrSum_I40_alpha_0.0019_temps_1-2500_runs_16x10.csv")
