@@ -495,6 +495,7 @@ def plotAnalysisSimplified(filenameBase, temps, corrLengths, corrLengthsVar, sus
     ax2.set_ylabel(r"$\chi^{-1}$")
     ax2.set_ylim(min(1.1*min(1/susceptibilities), 0.9*min(1/susceptibilities)), 1.1*max(1/susceptibilities))
     ax2.set_xlim(0.9*min(temps), 1.1*max(temps))
+    ax2.axhline(y=0.0, linestyle='--', color='gray')
     ax2.legend()
 
     fig.tight_layout()
@@ -604,7 +605,7 @@ def readData(path, args):
     corrSumMean = []
     corrSumStd = []
     for v in data['corrSums']:
-        v = v[1:-1].split(" ")
+        v = v[1:-1].split()
         corrSumMean.append(float(v[0]))
         corrSumStd.append(float(v[1]))
     data['corrSumMean'] = np.array(corrSumMean)
