@@ -213,9 +213,11 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
 
         C[ti, :, :] = abs(C[ti, :, :])
 
+    nonempty_bins_count = np.sum(counter > 0)
     counter[counter == 0] = np.nan
     avgPairsInBin = np.nanmean(counter)
     print("avgPairsInBin", avgPairsInBin)
+    print("nonempty_bins_count {} ({}% of available bins)".format(nonempty_bins_count, round(nonempty_bins_count*100/(C.shape[1]*C.shape[2]),2)))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -230,6 +232,9 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
     r_k = np.delete(r_k, nan_index)
     C = np.delete(C, nan_index)
     C_sum = np.mean(C_sum)
+    print("C_sum before normalization".format(C_sum))
+    C_sum /= nonempty_bins_count
+    print("C_sum after normalization".format(C_sum))
 
     return r_k, C, C_sum, avgPairsInBin, spinConfiguration
 
