@@ -498,6 +498,9 @@ def plotAnalysisSimplified(filenameBase, temps, corrLengths, corrLengthsVar, sus
     ax2.axhline(y=0.0, linestyle='--', color='gray')
     ax2.legend()
 
+    ax1.grid()
+    ax2.grid()
+
     fig.tight_layout()
 
     if saveFile:
