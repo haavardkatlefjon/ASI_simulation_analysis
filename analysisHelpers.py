@@ -209,7 +209,8 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
         C[ti, (counter == 0)] = np.nan
         C[ti, :, :] /= counter
 
-        C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array (within neighborhood). sum -> 0 as r -> inf
+        C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array (within neighborhood). sum -> 0 as r -> inf. 
+        # See Eq. 9.4.5 in https://phys.libretexts.org/Bookshelves/Thermodynamics_and_Statistical_Mechanics/Book%3A_Statistical_Mechanics_(Styer)/09%3A_Strongly_Interacting_Systems_and_Phase_Transitions/9.04%3A_Correlation_Functions_in_the_Ising_Model
 
         C[ti, :, :] = abs(C[ti, :, :])
 
