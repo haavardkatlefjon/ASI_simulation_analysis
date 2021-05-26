@@ -10,8 +10,8 @@ from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
 sweepConfig = {
-    'dr':       np.arange(0.1, 1.05, 0.1),
-    'dtheta':   np.arange(2, 21, 2),
+    'dr':       np.arange(0.1, 1.55, 0.1),
+    'dtheta':   np.arange(2, 31, 2),
 }
 corrConfig = {
     'N_points_avg':   1,
@@ -20,6 +20,11 @@ corrConfig = {
 
 def startPFCparamsweep(sim_ds):
     print("Starting sweep")
+
+    if len(sim_ds.index.index) > 1:
+        run_index = -1
+    else:
+        run_index = None
 
     iteration = 0
 
@@ -32,13 +37,14 @@ def startPFCparamsweep(sim_ds):
             corrConfig['dr']     = dr
             corrConfig['dtheta'] = dtheta
 
-            r_k, C, _, _, _ = tools.getAvgCorrFunction(sim_ds, corrConfig)
+            r_k, C, _, _, _ = tools.getAvgCorrFunction(sim_ds, corrConfig, run_index=run_index)
 
             # Compute correlation length by curve fitting with exp(-r/zeta)
             p0 = r_k[round(0.5*len(r_k))]
-            popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0, 10*r_k[-1]), p0=p0)
+            bounds = (0,100)
+            popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=bounds, p0=p0)
             corrLengths[i,j] = popt[0]
-            print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], p0))
+            print("Curve fit bounds ({},{}). Init guess {}".format(bounds[0], bounds[1], p0))
             print("Corr length {} \n".format(round(corrLengths[i,j],2)))
 
             iteration += 1
