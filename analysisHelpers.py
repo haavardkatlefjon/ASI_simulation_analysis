@@ -131,7 +131,7 @@ def getTheta(coordsA, coordsB, originRot, verbose=False):
     return theta
 
 
-def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
+def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     """ Called from tempsweep. Returns 1d avg correlation function. """
 
     # polar correlation function config
@@ -144,7 +144,10 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
         raise NotImplementedError("N_points_avg more than 1 has not been implemented yet")
 
     # read ASE geometry
-    pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[run_index])
+    if run_index == None:
+        pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry'))
+    else:
+        pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[run_index])
 
     # convert coordinated to units of lattice spacing
     pos /= sweep_ds.params['lattice_spacing']
@@ -179,7 +182,11 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
 
     C_sum = np.zeros(N_points_avg)
 
-    allSpinConfiguration = fsd.read_table(sweep_ds.tablefile("spin")[run_index])
+    if run_index == None:
+        allSpinConfiguration = fsd.read_table(sweep_ds.tablefile("spin"))
+    else:
+        allSpinConfiguration = fsd.read_table(sweep_ds.tablefile("spin")[run_index])
+
     timeframes = [len(allSpinConfiguration.index)-1]
 
     for ti, t in enumerate(timeframes):
@@ -209,7 +216,7 @@ def getAvgCorrFunction(sweep_ds, run_index, corrConfig):
         C[ti, (counter == 0)] = np.nan
         C[ti, :, :] /= counter
 
-        C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array (within neighborhood). sum -> 0 as r -> inf. 
+        C_sum[ti] = np.nansum(C[ti, :, :]) # sum over the full array (within neighborhood). sum -> 0 as r -> inf.
         # See Eq. 9.4.5 in https://phys.libretexts.org/Bookshelves/Thermodynamics_and_Statistical_Mechanics/Book%3A_Statistical_Mechanics_(Styer)/09%3A_Strongly_Interacting_Systems_and_Phase_Transitions/9.04%3A_Correlation_Functions_in_the_Ising_Model
 
         C[ti, :, :] = abs(C[ti, :, :])

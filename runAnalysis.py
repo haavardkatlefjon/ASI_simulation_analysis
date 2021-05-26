@@ -64,7 +64,7 @@ def tempsweep(sweep_ds, temps):
             else:
                 run_index = i
             # Get 1d correlation function
-            r_k, C, corrSums[i,g_id], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, run_index, corrConfig)
+            r_k, C, corrSums[i,g_id], _, spinConfiguration = tools.getAvgCorrFunction(sweep_ds, corrConfig, run_index)
 
             C_this_temp.append(C)
 
@@ -196,6 +196,12 @@ def main_existing_analysis(path, args, out_directory='analysis_output', createPl
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 if __name__ == "__main__":
+
+    legg inn vertikal linje for T=T_C i zeta vs T plot.
+    Kun bruke T > T_C ?
+    Kun bruke T slik at zeta er monotont voksende fra høye mot lave temp?
+    Implementer gradvis gauss disorder på rotasjon!
+
     # Create the parser
     my_parser = argparse.ArgumentParser(description='Arguments for analysis')
 
