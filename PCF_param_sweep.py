@@ -95,8 +95,4 @@ if __name__ == "__main__":
         # Read flatspin sweep data
         sim_ds = fsd.Dataset.read(args.path)
 
-        print("Name")
-
-        print(os.path.basename(sim_ds.basepath))
-
-        #startPFCparamsweep(sim_ds)
+        startPFCparamsweep(sim_ds)
