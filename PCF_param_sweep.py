@@ -15,7 +15,7 @@ sweepConfig = {
 }
 sweepConfig = {
     'dr':       np.arange(0.1, 1.01, 0.5),
-    'dtheta':   np.arange(2, 25, 20),
+    'dtheta':   np.arange(2, 20, 20),
 }
 
 corrConfig = {
@@ -92,4 +92,7 @@ if __name__ == "__main__":
         # Read flatspin sweep data
         sim_ds = fsd.Dataset.read(args.path)
 
-        startPFCparamsweep(sim_ds)
+        print("Name")
+        print(os.path.basename(args.path))
+
+        #startPFCparamsweep(sim_ds)
