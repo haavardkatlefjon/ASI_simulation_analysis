@@ -225,7 +225,7 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     counter[counter == 0] = np.nan
     avgPairsInBin = np.nanmean(counter)
     print("avgPairsInBin", avgPairsInBin)
-    print("nonempty_bins_count {} ({}% of available bins)".format(nonempty_bins_count, round(nonempty_bins_count*100/(C.shape[1]*C.shape[2]),2)))
+    print("nonempty_bins_count {} ({}% of available bins are not empty)".format(nonempty_bins_count, round(nonempty_bins_count*100/(C.shape[1]*C.shape[2]),2)))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)

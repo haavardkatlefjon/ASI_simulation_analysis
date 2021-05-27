@@ -4,14 +4,14 @@ import os
 import sys
 import csv
 import argparse
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import flatspin.data as fsd
-from scipy.optimize import curve_fit
+#from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
 sweepConfig = {
-    'dr':       np.arange(0.1, 1.55, 0.5),
-    'dtheta':   np.arange(2, 31, 15),
+    'dr':       np.arange(0.1, 1.01, 0.1),
+    'dtheta':   np.arange(2, 21, 2),
 }
 corrConfig = {
     'N_points_avg':   1,
