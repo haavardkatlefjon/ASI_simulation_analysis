@@ -4,9 +4,9 @@ import os
 import sys
 import csv
 import argparse
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import flatspin.data as fsd
-#from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
 sweepConfig = {
