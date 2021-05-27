@@ -11,7 +11,7 @@ import analysisHelpers as tools
 
 sweepConfig = {
     'dr':       np.arange(0.1, 1.01, 0.1),
-    'dtheta':   np.arange(2, 21, 2),
+    'dtheta':   np.arange(2, 25, 2),
 }
 corrConfig = {
     'N_points_avg':   1,
