@@ -13,6 +13,11 @@ sweepConfig = {
     'dr':       np.arange(0.1, 1.01, 0.1),
     'dtheta':   np.arange(2, 25, 2),
 }
+sweepConfig = {
+    'dr':       np.arange(0.1, 1.01, 0.5),
+    'dtheta':   np.arange(2, 25, 20),
+}
+
 corrConfig = {
     'N_points_avg':   1,
     'neighbor_dist':  np.inf,
@@ -54,7 +59,8 @@ def startPFCparamsweep(sim_ds):
     filename = "paramSweep_" + os.path.basename(sim_ds.basepath)
 
     np.savetxt(filename + "_corrLengths.csv", corrLengths)
-    np.savetxt(filename + "_sweepConfig.csv", np.vstack((sweepConfig['dr'], sweepConfig['dtheta'])).T)
+    np.savetxt(filename + "_sweepConfig_dr.csv", sweepConfig['dr'])
+    np.savetxt(filename + "_sweepConfig_dtheta.csv", sweepConfig['dtheta'])
     print("Saved to file {}".format(filename))
 
 
