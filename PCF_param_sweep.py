@@ -93,6 +93,8 @@ if __name__ == "__main__":
         sim_ds = fsd.Dataset.read(args.path)
 
         print("Name")
+        print(args.path)
         print(os.path.basename(args.path))
+        print(os.path.split(args.path))
 
         #startPFCparamsweep(sim_ds)
