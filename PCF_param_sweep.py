@@ -10,8 +10,8 @@ from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
 sweepConfig = {
-    'dr':       np.arange(0.1, 1.55, 0.1),
-    'dtheta':   np.arange(2, 31, 2),
+    'dr':       np.arange(0.1, 1.55, 0.5),
+    'dtheta':   np.arange(2, 31, 15),
 }
 corrConfig = {
     'N_points_avg':   1,
@@ -26,7 +26,7 @@ def startPFCparamsweep(sim_ds):
     else:
         run_index = None
 
-    iteration = 0
+    iteration = 1
 
     corrLengths = np.zeros((len(sweepConfig['dr']), len(sweepConfig['dtheta'])))
 
