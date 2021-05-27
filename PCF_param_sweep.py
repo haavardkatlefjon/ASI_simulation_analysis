@@ -96,5 +96,7 @@ if __name__ == "__main__":
         print(args.path)
         print(os.path.basename(args.path))
         print(os.path.split(args.path))
+        print(os.path.split(sim_ds.basepath))
+
 
         #startPFCparamsweep(sim_ds)
