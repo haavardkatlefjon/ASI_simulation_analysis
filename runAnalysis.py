@@ -240,6 +240,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     else:
+        if args.path.endswith('/'):
+            args.path = args.path[:-1]
+            
         print("Loading flatspin dataset")
 
         # Read flatspin sweep data
