@@ -53,7 +53,6 @@ def startPFCparamsweep(sim_ds):
     print("\n\n")
 
     filename = "paramSweep_" + os.path.basename(sim_ds.basepath)
-
     np.savetxt(filename + "_corrLengths.csv", corrLengths)
     np.savetxt(filename + "_sweepConfig_dr.csv", sweepConfig['dr'])
     np.savetxt(filename + "_sweepConfig_dtheta.csv", sweepConfig['dtheta'])
@@ -61,6 +60,26 @@ def startPFCparamsweep(sim_ds):
 
 
 
+
+def computeLatticeCorrelation(sim_ds):
+    r, C_avg = tools.getLatticeCorrelationFunction(sim_ds)
+    data = np.vstack((r, C_avg)).T
+
+    # Compute correlation length by curve fitting with exp(-r/zeta)
+    p0 = r[round(0.5*len(r))]
+    bounds = (0,100)
+    popt, pcov = curve_fit(tools.expfunc, r, C_avg, bounds=bounds, p0=p0)
+    zeta = popt[0]
+    print("Curve fit bounds ({},{}). Init guess {}".format(bounds[0], bounds[1], p0))
+    print("Corr length {} \n".format(round(zeta,2)))
+
+
+    out_directory = os.path.join('data_for_thesis', 'PCF_grid_sweeps')
+    filename = os.path.join(out_directory, "latticeCorrFunc_" + os.path.basename(sim_ds.basepath))
+    filename += "_zeta_" + str(round(zeta,2))
+
+    np.savetxt(filename + ".csv", data)
+    print("Saved to file {}".format(filename))
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -73,6 +92,11 @@ if __name__ == "__main__":
     my_parser.add_argument("path",
                             type=str,
                             help='the directory containing files from a flatspin run or an analysis number for reuse of existing analysis')
+    my_parser.add_argument('-m',
+                           '--method',
+                           metavar='method',
+                           type=str,
+                           help='Method (lattice)')
 
     # Execute the parse_args() method
     args = my_parser.parse_args()
@@ -91,4 +115,9 @@ if __name__ == "__main__":
         # Read flatspin sweep data
         sim_ds = fsd.Dataset.read(args.path)
 
-        startPFCparamsweep(sim_ds)
+        if args.method == 'lattice':
+            print('Lattice method')
+            computeLatticeCorrelation(sim_ds)
+
+        else:
+            startPFCparamsweep(sim_ds)

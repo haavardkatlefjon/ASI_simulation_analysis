@@ -15,17 +15,12 @@ except Exception as e:
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
-    'dr':             0.5,     # units of lattice spacing
-    'dtheta':         90/70,   # degrees
+    'dr':             0.3,     # units of lattice spacing
+    'dtheta':         6,   # degrees
     'N_points_avg':   1,       # number of timeframes used to make thermal avg
     'neighbor_dist':  np.inf,  # units of lattice spacing. Distance within correlation should be checked
 }
 
-#@TODO! NEIGHBOR DIST FUCKUP. ALLOCATE C WHEN np.inf -> fuckings fuck. Finn på noe smart!
-#forslag: finn maksimum mulige distanse og bruk det til allokering av C
-#if sweep_ds.params['neighbor_distance'] == np.inf:
-#    round(np.amax(abs_distances) elns)
-# kjør sweep på nyeste I40 alpha 0.06...
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
@@ -90,7 +85,7 @@ def tempsweep(sweep_ds, temps):
     return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
 
-def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True, returnKey = None):
+def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = None):
     # Print start info
     startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs) \n".format(sweep_ds.basepath, len(sweep_ds.index.index))
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
@@ -131,7 +126,10 @@ def main_analysis(sweep_ds, out_directory = 'analysis_output', createPlots=True,
     # filename for storing output files
     analysisID    = tools.getAnalysisId(out_directory)
     runName       = tools.getRunName(sweep_ds.basepath, temps)
-    filenameBase  = os.path.join(out_directory, str(analysisID) + "_" + runName)
+    if analysisID != None:
+        runName = str(analysisID) + "_" + runName
+    filenameBase  = os.path.join(out_directory, runName)
+
     tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
 
     if createPlots:
@@ -197,10 +195,9 @@ def main_existing_analysis(path, args, out_directory='analysis_output', createPl
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 if __name__ == "__main__":
 
-    legg inn vertikal linje for T=T_C i zeta vs T plot.
-    Kun bruke T > T_C ?
-    Kun bruke T slik at zeta er monotont voksende fra høye mot lave temp?
-    Implementer gradvis gauss disorder på rotasjon!
+    # legg inn vertikal linje for T=T_C i zeta vs T plot.
+    # Kun bruke T > T_C ?
+    # Kun bruke T slik at zeta er monotont voksende fra høye mot lave temp?
 
     # Create the parser
     my_parser = argparse.ArgumentParser(description='Arguments for analysis')

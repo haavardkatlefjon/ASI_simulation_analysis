@@ -169,6 +169,7 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
         # using maximum separation as proxy for np.inf neighbor distance
         r_max = np.amax(absEuclidianDist)
         neighbor_dist = 0.25 * r_max
+        neighbor_dist = 0.05 * r_max
         print("setting neighbor dist to {}".format(neighbor_dist))
 
     # get list of neighbors for each magnet
@@ -246,6 +247,107 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
 
     return r_k, C, C_sum, avgPairsInBin, spinConfiguration
 
+
+def getLatticeCorrelationFunction(sim_ds):
+
+    if len(sim_ds.index.index) > 1:
+        run_index = -1
+    else:
+        run_index = None
+
+    resolution = 0.5
+
+    # read ASI geometry
+    if run_index == None:
+        pos, angle = fsd.read_geometry(sim_ds.tablefile('geometry'))
+    else:
+        pos, angle = fsd.read_geometry(sim_ds.tablefile('geometry')[run_index])
+
+    # Compute distance matrix
+    distances       = getDistanceMatrix(pos)
+    absDistances    = abs(distances)
+
+    absEuclidianDist = np.sqrt(absDistances[:,:,0]**2 + absDistances[:,:,1]**2)
+    absEuclidianDist = absEuclidianDist[absEuclidianDist>0]
+
+    r_max = np.amax(absEuclidianDist)
+    neighbor_dist = 0.25 * r_max
+
+    # get list of neighbors for each magnet
+    neighborList = getNeighborList(pos, sim_ds.params, neighborDistance=neighbor_dist)
+
+    # Allocate array for C
+    C = np.zeros((int(round(sim_ds.params['lattice_spacing'] * neighbor_dist / resolution)) + 2,
+                  int(round(sim_ds.params['lattice_spacing'] * neighbor_dist / resolution)) + 2 ))
+
+    counter = np.zeros(C.shape)
+
+    if run_index == None:
+        spinConfig = fsd.read_table(sim_ds.tablefile("spin"))
+    else:
+        spinConfig = fsd.read_table(sim_ds.tablefile("spin")[run_index])
+
+    spinConfig = spinConfig.iloc[-1].to_numpy()[1:]
+
+    for i in tqdm(range(len(pos))):
+        #print()
+        #print("Magnet", i)
+        # Correlation with self is always +1
+        C[0, 0]   += 1
+        counter[0, 0] += 1
+
+
+        #print("Neighbors")
+        #print(neighborList[i][neighborList[i]>=0])
+
+        for j in neighborList[i][neighborList[i]>=0]:
+            #print("Neighbor", j)
+            dist = absDistances[i,j]
+            spinCorrelation = getCorrelationValue(spinConfig, i, j, distances[i,j], angle[i], angle[j])
+
+            if abs(angle[i] - np.pi/2) < 1e-3:
+                dist_tmp_x = dist[1]
+                dist_tmp_y = dist[0]
+                dist = np.array([dist_tmp_x, dist_tmp_y])
+                #print("Switching, dist =", dist)
+
+
+            index = np.array([  int(round( dist[0] / resolution )),
+                                int(round( dist[1] / resolution ))], dtype=np.int32)
+
+            C[index[0], index[1]]   += spinCorrelation
+            counter[index[0], index[1]] += 1
+
+    C[counter == 0] = np.nan
+    C /= counter
+    C = abs(C)
+
+    # 2D corr function finished. Now, compact into 1D
+    delta = 0.1
+    r = np.arange(0, neighbor_dist, delta)
+    C_avg = np.zeros(r.shape)
+    N_pair = np.zeros(r.shape)
+
+    for ri, r_k in enumerate(r):
+        # print("Checking entries for r={}".format(r_k))
+        for i in range(C.shape[0]):
+            for j in range(C.shape[1]):
+                if np.isnan(C[i,j]):
+                    continue
+                rij = np.sqrt((i*resolution)**2 + (j*resolution)**2)
+                if rij > r_k - delta/2 and rij < r_k + delta/2:
+                    C_avg[ri]  += C[i,j]
+                    N_pair[ri] += 1
+
+    N_pair[N_pair==0] = np.nan
+    C_avg /= N_pair
+
+    # Delete nan entries to avoid fuckups when doing curve fit
+    nan_index = np.argwhere(np.isnan(C_avg))
+    r = np.delete(r, nan_index)
+    C_avg = np.delete(C_avg, nan_index)
+
+    return r, C_avg
 
 def getEndTemp(temp_string):
     if len(temp_string) > 1000:
@@ -530,7 +632,7 @@ def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar
               'corrSums': corrSums[:,0],
               'corrSumsStd': corrSums[:,1],
               'susceptibilities': susceptibilities,
-              'corrFunctions': [str(C) for C in corrFunctions],
+              'corrFunctions': str([str(C) for C in corrFunctions]),
              })
     parameterResults = {"T_c": T_c, "C_curie": C_curie, "A": A, "nu": nu}
 
@@ -563,10 +665,16 @@ def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar
                 writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i], susceptibilities[i], str(corrFunctions[i])])
             writer.writerow([])
         print("Wrote report to file", filename)
+
+        tempSweepResults = tempSweepResults.drop(columns=['corrFunctions'])
+        tempSweepResults.to_csv(filenameBase + '-temp_data.csv', index=False)
+
     return tempSweepResults, parameterResults
 
 
 def getAnalysisId(out_directory):
+    if out_directory == '':
+        return None
     maxID = 0
     for fname in os.listdir(out_directory):
         if fname == "":
@@ -645,11 +753,7 @@ def readData(path, args):
 
 def getRunName(input_path, temps):
     elements = os.path.basename(input_path).split('_')
-    """if '\\' in input_path:
-        elements = input_path.split('\\')[-1].split('_')
-    else:
-        elements = input_path.split('/')[-1].split('_')
-    """
+
     runName = ""
     for i in range(len(elements)):
         if i >= 1:
