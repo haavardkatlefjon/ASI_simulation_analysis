@@ -52,7 +52,7 @@ def startPFCparamsweep(sim_ds):
 
     print("\n\n")
 
-    filename = "paramSweep_" + os.path.basename(sim_ds.basepath)
+    filename = "paramSweep_b1000" + os.path.basename(sim_ds.basepath)
     np.savetxt(filename + "_corrLengths.csv", corrLengths)
     np.savetxt(filename + "_sweepConfig_dr.csv", sweepConfig['dr'])
     np.savetxt(filename + "_sweepConfig_dtheta.csv", sweepConfig['dtheta'])
