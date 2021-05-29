@@ -659,9 +659,9 @@ def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar
                 writer.writerow([k, v])
             writer.writerow([''])
             writer.writerow(['Temp sweep data'])
-            writer.writerow(["temps", "corrLengths", "corrLengthsVar", "corrSums", "susceptibilities", "corrFunctions"])
+            writer.writerow(["temps", "corrLengths", "corrLengthsVar", "corrSums", "corrSumsStd", "susceptibilities", "corrFunctions"])
             for i in range(len(temps)):
-                writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i], susceptibilities[i], str(corrFunctions[i])])
+                writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i], corrSumsStd[i], susceptibilities[i], str(corrFunctions[i])])
             writer.writerow([])
         print("Wrote report to file", filename)
 
@@ -684,7 +684,8 @@ def getAnalysisId(out_directory):
     return maxID + 1
 
 
-def existingAnalysis(id, directory="analysis_output"):
+#def existingAnalysis(id, directory="analysis_output"):
+def existingAnalysis(reportName, directory="analysis_output"):
     for fname in os.listdir(directory):
         test_id = fname.split("_")[0]
         if test_id == str(id) and fname[-3:] == "csv":
@@ -756,7 +757,7 @@ def getRunName(input_path, temps):
     runName = ""
     for i in range(len(elements)):
         if i >= 1:
-            if elements[i-1] == 'temps':
+            if elements[i-1] == 'temp':
                 elements[i] = str(round(temps[0])) + "-" + str(round(temps[-1]))
             elif elements[i-1] == 'runs':
                 elements[i] = str(len(temps))

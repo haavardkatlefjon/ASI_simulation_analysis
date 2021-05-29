@@ -11,7 +11,7 @@ import analysisHelpers as tools
 
 sweepConfig = {
     'dr':       np.arange(0.1, 1.01, 0.1),
-    'dtheta':   np.arange(2, 25, 2),
+    'dtheta':   np.arange(2, 35, 3),
 }
 
 corrConfig = {
@@ -42,7 +42,7 @@ def startPFCparamsweep(sim_ds):
 
             # Compute correlation length by curve fitting with exp(-r/zeta)
             p0 = r_k[round(0.5*len(r_k))]
-            bounds = (0,100)
+            bounds = (0,1000)
             popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=bounds, p0=p0)
             corrLengths[i,j] = popt[0]
             print("Curve fit bounds ({},{}). Init guess {}".format(bounds[0], bounds[1], p0))

@@ -12,8 +12,8 @@ import analysisHelpers as tools
 corrConfig = {
     'N_points_avg':   1,
     'neighbor_dist':  np.inf,
-    'dr':             0.1,
-    'dtheta':         2,
+    'dr':             0.3,
+    'dtheta':         6,
 }
 
 def generateCorrFunctions(simulation_paths, output_directory):
@@ -22,14 +22,19 @@ def generateCorrFunctions(simulation_paths, output_directory):
     for path in simulation_paths:
         sim_ds = fsd.Dataset.read(path)
 
+        filename = "1d_corrFunc_dr{}-dtheta{}_".format(corrConfig['dr'], corrConfig['dtheta']) + os.path.basename(sim_ds.basepath) + "_corrFunc.csv"
+
+        if os.path.isfile(os.path.join(output_directory, filename)):
+            print("File already exist ({}). Continuing to next.".format(filename))
+            continue
+
+
         if len(sim_ds.index.index) > 1:
             run_index = -1
         else:
             run_index = None
 
         r_k, C, _, _, _ = tools.getAvgCorrFunction(sim_ds, corrConfig, run_index=run_index)
-
-        filename = "1d_corrFunc_dr{}-dtheta{}_".format(corrConfig['dr'], corrConfig['dtheta']) + os.path.basename(sim_ds.basepath) + "_corrFunc.csv"
 
         data = np.vstack((r_k, C)).T
 

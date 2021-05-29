@@ -72,10 +72,11 @@ def tempsweep(sweep_ds, temps):
 
         # Compute correlation length by curve fitting with exp(-r/zeta)
         p0 = r_k[round(0.5*len(r_k))]
-        popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=(0, 10*r_k[-1]), p0=p0)
+        bounds=(0,1000)
+        popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=bounds, p0=p0)
         corrLengths[i] = popt[0]
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
-        print("Curve fit bounds (0,{}). Init guess {}".format(10*r_k[-1], p0))
+        print("Curve fit bounds (0, {}). Init guess {}".format(bounds[1], p0))
         print("Corr length {} \n".format(round(corrLengths[i],2)))
 
     corrSumsMean = np.mean(corrSums, axis=1)
@@ -159,27 +160,65 @@ def fitnessFunction(sweep_ds):
     return main_analysis(sweep_ds, createPlots=True, returnKey = 'T_c')
 
 
-def main_existing_analysis(path, args, out_directory='analysis_output', createPlots = True):
-    data = tools.readData(path, args)
+def main_existing_analysis(path, args, out_directory='', createPlots = True):
+    # data = tools.readData(path, args)
+    data = pd.read_csv(path)
+    if args.temp != None:
+        try:
+            temp = args.temp.split(':')
+            mask = np.array([True for i in range(len(data.index))])
+            if temp[0] != '':
+                mask *= data.temps > float(temp[0])
+            if temp[1] != '':
+                mask *= data.temps < float(temp[1])
+
+            mask = (mask==False)
+
+            data = data.drop(data[mask].index)
+
+            #sliceStart = np.where(mask)[0][0]
+            #sliceEnd = np.where(mask)[0][-1]+1
+
+            #for key in data.keys():
+            #    data[key] = data[key][sliceStart:sliceEnd]
+
+        except Exception as e:
+            print(type(e),e)
+            print("Invalid index. Should be Python list slicing format start:end")
+            sys.exit(1)
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
-    susceptibilities    = tools.flucDissSusceptibility(data['temps'], data['corrSumMean'])
-    invSusceptibilitiesStd = tools.invSusceptibilityStd(data['temps'], np.vstack((data['corrSumMean'], data['corrSumStd'])).T)
+
+    susceptibilities    = tools.flucDissSusceptibility(data.temps, data.corrSums)
+    invSusceptibilitiesStd = tools.invSusceptibilityStd(data.temps, np.vstack((data.corrSums, data.corrSumsStd)).T)
 
     # Find critical temperature, T_c
-    T_c, C_curie = tools.getCriticalTemp(data['temps'], susceptibilities)
+    T_c, C_curie = tools.getCriticalTemp(data.temps, susceptibilities)
 
     # determine critical parameter
-    A, nu = tools.getCriticalExponent(data['temps'], data['corrLengths'], T_c)
+    A, nu = tools.getCriticalExponent(data.temps, data.corrLengths, T_c)
 
-    analysisID    = tools.getAnalysisId(out_directory)
-    runName       = tools.getRunName(os.path.basename(path), data['temps'])
-    filenameBase  = os.path.join(out_directory, str(analysisID) + "_" + runName)
+    paramResults = pd.DataFrame(
+        data={'T_c': [T_c],
+              'C_curie': [C_curie],
+              'A': [A],
+              'nu': [nu],
+             })
+
+    # analysisID    = tools.getAnalysisId(out_directory)
+    runName       = tools.getRunName(os.path.basename(path), data.temps.to_numpy())
+    if not runName.startswith("extract_"):
+        runName = "extract_" + runName
+    filenameBase  = os.path.join(out_directory, runName)
     #tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
+    if not 'corrSumsStd' in data.columns:
+        data.corrSumsStd = np.ones(len(data.index))*np.nan
+    data.to_csv(filenameBase + '-data.csv', index=False)
+    paramResults.to_csv(filenameBase + '-paramResults.csv', index=False)
 
     if createPlots:
         # Analysis plots
-        tools.plotAnalysisSimplified(filenameBase, data['temps'], data['corrLengths'], data['corrLengthsVar'], susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd=invSusceptibilitiesStd, saveFile=True, directory=out_directory)
+        tools.plotAnalysisSimplified(filenameBase, data.temps.to_numpy(), data.corrLengths, data.corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd=invSusceptibilitiesStd, saveFile=True, directory=out_directory)
 
 
 
@@ -226,11 +265,12 @@ if __name__ == "__main__":
     args = my_parser.parse_args()
 
     # Check the directory exists
-    if tools.isFloat(args.path):
-        path = tools.existingAnalysis(id = int(args.path))
+    if args.path.endswith('data.csv'):
+        # path = tools.existingAnalysis(args.path, directory ='./')
+        path = args.path
         if path != None:
             print("Existing analysis. Opening {}".format(path))
-            main_existing_analysis(path, args)
+            main_existing_analysis(path, args, out_directory=os.path.dirname(args.path))
         else:
             print("Could not find analysis with id {}".format(args.path))
             sys.exit(1)
@@ -242,7 +282,7 @@ if __name__ == "__main__":
     else:
         if args.path.endswith('/'):
             args.path = args.path[:-1]
-            
+
         print("Loading flatspin dataset")
 
         # Read flatspin sweep data
