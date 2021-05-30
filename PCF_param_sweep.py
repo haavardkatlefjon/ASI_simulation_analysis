@@ -10,8 +10,8 @@ from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
 sweepConfig = {
-    'dr':       np.arange(0.1, 1.01, 0.1),
-    'dtheta':   np.arange(2, 35, 3),
+    'dr':       np.arange(0.1, 0.51, 0.1),
+    'dtheta':   np.arange(2, 21, 3),
 }
 
 corrConfig = {
