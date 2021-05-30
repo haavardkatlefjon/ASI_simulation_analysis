@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
 sweepConfig = { #sikter på (0.3, 3)
-    'dr':       np.arange(0.1, 2.01, 0.2),
+    'dr':       np.arange(1.1, 2.01, 0.2),
     'dtheta':   np.arange(1, 21.01, 2),
 }
 
