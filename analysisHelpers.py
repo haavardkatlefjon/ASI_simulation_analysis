@@ -176,8 +176,8 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
 
     # Prepare array to store correlation values
     C = np.zeros((N_points_avg,
-                  round(sweep_ds.params['lattice_spacing'] * 1.1 * neighbor_dist / dr) ,   # number of radial bins, 10% extra
-                  round(90/dtheta)                                                         # number of angular bins
+                  round(sweep_ds.params['lattice_spacing'] * 1.1 * neighbor_dist / dr)+2 ,   # number of radial bins, 10% extra
+                  round(90/dtheta)+2                                                         # number of angular bins
                   ))
 
     C_sum = np.zeros(N_points_avg)
