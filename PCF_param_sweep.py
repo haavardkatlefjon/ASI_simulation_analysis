@@ -16,7 +16,7 @@ sweepConfig = { #sikter på (0.3, 3)
 
 corrConfig = {
     'N_points_avg':   1,
-    'neighbor_dist':  np.inf,
+    'neighbor_dist':  10,#np.inf,
 }
 
 def startPFCparamsweep(sim_ds):

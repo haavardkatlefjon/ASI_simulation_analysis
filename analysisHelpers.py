@@ -169,7 +169,7 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
         # using maximum separation as proxy for np.inf neighbor distance
         r_max = np.amax(absEuclidianDist)
         neighbor_dist = 0.25 * r_max
-        print("setting neighbor dist to {}".format(neighbor_dist))
+    print("Neighbor dist: {}".format(neighbor_dist))
 
     # get list of neighbors for each magnet
     neighborList = getNeighborList(pos, sweep_ds.params, neighborDistance=neighbor_dist)
