@@ -9,9 +9,9 @@ import flatspin.data as fsd
 from scipy.optimize import curve_fit
 import analysisHelpers as tools
 
-sweepConfig = {
-    'dr':       np.arange(0.1, 0.51, 0.1),
-    'dtheta':   np.arange(2, 12, 3),
+sweepConfig = { #sikter på (0.3, 3)
+    'dr':       np.arange(0.1, 2.01, 0.2),
+    'dtheta':   np.arange(1, 21.01, 2),
 }
 
 corrConfig = {
