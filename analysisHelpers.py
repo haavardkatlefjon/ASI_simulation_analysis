@@ -661,7 +661,7 @@ def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar
             writer.writerow(['Temp sweep data'])
             writer.writerow(["temps", "corrLengths", "corrLengthsVar", "corrSums", "corrSumsStd", "susceptibilities", "corrFunctions"])
             for i in range(len(temps)):
-                writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i], corrSumsStd[i], susceptibilities[i], str(corrFunctions[i])])
+                writer.writerow([temps[i], corrLengths[i], corrLengthsVar[i], corrSums[i,0], corrSums[i,1], susceptibilities[i], str(corrFunctions[i])])
             writer.writerow([])
         print("Wrote report to file", filename)
 
