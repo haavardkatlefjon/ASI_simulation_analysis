@@ -666,7 +666,7 @@ def processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar
         print("Wrote report to file", filename)
 
         tempSweepResults = tempSweepResults.drop(columns=['corrFunctions'])
-        tempSweepResults.to_csv(filenameBase + '-temp_data.csv', index=False)
+        tempSweepResults.to_csv(filenameBase + '-data.csv', index=False)
 
     return tempSweepResults, parameterResults
 
