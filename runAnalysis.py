@@ -7,6 +7,7 @@ import argparse
 import matplotlib.pyplot as plt
 import flatspin.data as fsd
 from scipy.optimize import curve_fit
+import time
 
 try:
     import analysisHelpers as tools
@@ -192,6 +193,21 @@ def main_existing_analysis(path, args, out_directory='', createPlots = True):
     susceptibilities    = tools.flucDissSusceptibility(data.temps, data.corrSums)
     invSusceptibilitiesStd = tools.invSusceptibilityStd(data.temps, np.vstack((data.corrSums, data.corrSumsStd)).T)
 
+    if False:
+        # drop certain values based on inv susceptibility std error
+        dropMask = (invSusceptibilitiesStd > 2e16)
+
+        print("Dropping values with temp")
+        print(data.temps[dropMask])
+        print()
+
+        dataDropped = data[dropMask].copy()
+        data = data.drop(data[dropMask].index)
+
+        susceptibilities    = tools.flucDissSusceptibility(data.temps, data.corrSums)
+        invSusceptibilitiesStd = tools.invSusceptibilityStd(data.temps, np.vstack((data.corrSums, data.corrSumsStd)).T)
+
+
     # Find critical temperature, T_c
     T_c, C_curie = tools.getCriticalTemp(data.temps, susceptibilities)
 
@@ -319,6 +335,10 @@ if __name__ == "__main__":
 
         if 'temp' in sweep_ds.index.columns:
             #main_analysis(sweep_ds)
+            for i in range(180):
+                print("Starting in {} minutes".format(180-i))
+                time.sleep(60)
+            print()
             fitnessFunction(sweep_ds)
         else:
             print("Not a temp sweep simulation")
