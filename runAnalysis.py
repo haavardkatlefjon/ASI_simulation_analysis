@@ -299,6 +299,11 @@ if __name__ == "__main__":
         if args.path.endswith('/'):
             args.path = args.path[:-1]
 
+        for i in range(180):
+            print("Starting in {} minutes".format(180-i))
+            time.sleep(60)
+        print()
+
         print("Loading flatspin dataset")
 
         # Read flatspin sweep data
@@ -335,10 +340,6 @@ if __name__ == "__main__":
 
         if 'temp' in sweep_ds.index.columns:
             #main_analysis(sweep_ds)
-            for i in range(180):
-                print("Starting in {} minutes".format(180-i))
-                time.sleep(60)
-            print()
             fitnessFunction(sweep_ds)
         else:
             print("Not a temp sweep simulation")
