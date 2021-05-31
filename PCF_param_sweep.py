@@ -19,13 +19,11 @@ corrConfig = {
     'neighbor_dist':  10,#np.inf,
 }
 
-def startPFCparamsweep(sim_ds):
+def startPFCparamsweep(sim_ds, run_index=None):
     print("Starting sweep")
 
-    if len(sim_ds.index.index) > 1:
+    if run_index==None and len(sim_ds.index.index) > 1:
         run_index = -1
-    else:
-        run_index = None
 
     iteration = 1
 
@@ -97,6 +95,11 @@ if __name__ == "__main__":
                            metavar='method',
                            type=str,
                            help='Method (lattice)')
+    my_parser.add_argument('-i',
+                           '--index',
+                           metavar='index',
+                           type=int,
+                           help='Run index')
 
     # Execute the parse_args() method
     args = my_parser.parse_args()
@@ -112,6 +115,11 @@ if __name__ == "__main__":
         if args.path.endswith('/'):
             args.path = args.path[:-1]
 
+        run_index = None
+        if tools.isFloat(args.index):
+            run_index = int(args.index)
+            print("Using run index", run_index)
+
         # Read flatspin sweep data
         sim_ds = fsd.Dataset.read(args.path)
 
@@ -120,4 +128,4 @@ if __name__ == "__main__":
             computeLatticeCorrelation(sim_ds)
 
         else:
-            startPFCparamsweep(sim_ds)
+            startPFCparamsweep(sim_ds, run_index)
