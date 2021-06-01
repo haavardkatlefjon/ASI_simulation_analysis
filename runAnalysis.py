@@ -304,14 +304,26 @@ if __name__ == "__main__":
         if args.path.endswith('/'):
             args.path = args.path[:-1]
 
+        """
         if not args.postpone == None:
             for i in range(args.postpone):
                 print("Starting in {} minutes".format(args.postpone-i))
                 time.sleep(60)
             print()
+        """
+
+        if args.postpone != None:
+            wait = True
+            while wait:
+                try:
+                    sweep_ds = fsd.Dataset.read(args.path)
+                    wait = False
+                    print("Sweep ready. Starting analysis.")
+                except:
+                    print("Sweep files not ready. Trying again in {} minutes".format(args.postpone))
+                    time.sleep(60*args.postpone)
 
         print("Loading flatspin dataset")
-
         # Read flatspin sweep data
         sweep_ds = fsd.Dataset.read(args.path)
 
