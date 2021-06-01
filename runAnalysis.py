@@ -276,6 +276,11 @@ if __name__ == "__main__":
                            metavar='temp',
                            type=str,
                            help='Temp range to use. Python list slicing format.')
+    my_parser.add_argument('-p',
+                           '--postpone',
+                           metavar='postpone',
+                           type=int,
+                           help='Postpone start. Number (int), minutes')
 
     # Execute the parse_args() method
     args = my_parser.parse_args()
@@ -299,10 +304,9 @@ if __name__ == "__main__":
         if args.path.endswith('/'):
             args.path = args.path[:-1]
 
-        delayStart = False
-        if delayStart:
-            for i in range(180):
-                print("Starting in {} minutes".format(180-i))
+        if not args.postpone == None:
+            for i in range(args.postpone):
+                print("Starting in {} minutes".format(args.postpone-i))
                 time.sleep(60)
             print()
 
