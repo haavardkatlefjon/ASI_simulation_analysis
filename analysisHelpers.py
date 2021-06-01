@@ -106,7 +106,7 @@ def getCorrelationValue(spinConfiguration, i, j, r_ij, angle_i, angle_j):
     if abs(h_dipole_parallel) < 1e-20:
         """ If degenerate states (i.e. 45 deg pin-wheel). """
         """ Rationale: just need to be consequent for correlation function calcualtions """
-        return -1 + 2*((spinConfiguration[j]*angle_j - spinConfiguration[i]*angle_i)*180/np.pi == 90)
+        return -1 + (2*round((spinConfiguration[j]*angle_j - spinConfiguration[i]*angle_i)*180/np.pi) == 90)
 
     else:
         return -1 + 2*(h_dipole_parallel > 0)
@@ -583,11 +583,17 @@ def plotAnalysisSimplified(filenameBase, temps, corrLengths, corrLengthsVar, sus
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10,10))
 
 
+    corrLengths = np.log(corrLengths)
+    ylabel = r"log($\zeta$)"
+    tempArray   = np.linspace(0, 1.1*temps[-1], 100)
+    powerLawFit = np.log(corrLengthPowerLaw((tempArray, T_c*np.ones(len(tempArray))), A, nu))
+
     # Plot corr lengths
     ax1.plot(temps, corrLengths, 'o', label="from exp curve fit")
-    ax1.plot(np.linspace(0, 1.1*temps[-1], 100), corrLengthPowerLaw((np.linspace(0, 1.1*temps[-1], 100), T_c*np.ones(100)), A, nu), '-', label=r"power law ($\nu={}$, $A={}$)".format(round(nu,2), round(A,2)))
+    ax1.plot(tempArray, powerLawFit, '-', label=r"power law ($\nu={}$, $A={}$)".format(round(nu,2), round(A,2)))
     ax1.set_xlabel("Temp")
-    ax1.set_ylabel(r"$\zeta$")
+    ax1.set_ylabel(ylabel)
+    ax1.set_xlim(0.9*min(temps), 1.1*max(temps))
     ax1.set_ylim(-0.1, 1.5*np.amax(corrLengths))
     ax1.legend()
 

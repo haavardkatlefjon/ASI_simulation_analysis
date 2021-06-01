@@ -169,9 +169,9 @@ def main_existing_analysis(path, args, out_directory='', createPlots = True):
             temp = args.temp.split(':')
             mask = np.array([True for i in range(len(data.index))])
             if temp[0] != '':
-                mask *= data.temps > float(temp[0])
+                mask *= data.temps >= float(temp[0])
             if temp[1] != '':
-                mask *= data.temps < float(temp[1])
+                mask *= data.temps <= float(temp[1])
 
             mask = (mask==False)
 
@@ -299,10 +299,12 @@ if __name__ == "__main__":
         if args.path.endswith('/'):
             args.path = args.path[:-1]
 
-        for i in range(180):
-            print("Starting in {} minutes".format(180-i))
-            time.sleep(60)
-        print()
+        delayStart = False
+        if delayStart:
+            for i in range(180):
+                print("Starting in {} minutes".format(180-i))
+                time.sleep(60)
+            print()
 
         print("Loading flatspin dataset")
 
