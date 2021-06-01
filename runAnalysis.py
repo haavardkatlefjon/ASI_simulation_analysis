@@ -317,6 +317,8 @@ if __name__ == "__main__":
             while wait:
                 try:
                     sweep_ds = fsd.Dataset.read(args.path)
+                    for i in sweep_ds.index.index:
+                        fsd.read_geometry(sweep_ds.tablefile('geometry')[i])
                     wait = False
                     print("Sweep ready. Starting analysis.")
                 except:
