@@ -161,7 +161,7 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     absEuclidianDist = absEuclidianDist[absEuclidianDist>0]
     print("min euclid dist", np.amin(absEuclidianDist))
 
-    dr = dr * np.amin(absEuclidianDist)
+    # dr = dr * np.amin(absEuclidianDist)
 
     print("Setting dr = {}".format(dr))
 
