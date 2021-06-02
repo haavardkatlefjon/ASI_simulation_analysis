@@ -253,6 +253,7 @@ def getLatticeCorrelationFunction(sim_ds):
         run_index = -1
     else:
         run_index = None
+    # run_index = 20
 
     resolution = 0.5
 
@@ -271,6 +272,7 @@ def getLatticeCorrelationFunction(sim_ds):
 
     r_max = np.amax(absEuclidianDist)
     neighbor_dist = 0.25 * r_max
+    neighbor_dist = 10
 
     # get list of neighbors for each magnet
     neighborList = getNeighborList(pos, sim_ds.params, neighborDistance=neighbor_dist)
