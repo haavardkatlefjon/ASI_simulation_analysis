@@ -161,15 +161,28 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     absEuclidianDist = absEuclidianDist[absEuclidianDist>0]
     print("min euclid dist", np.amin(absEuclidianDist))
 
-    # dr = dr * np.amin(absEuclidianDist)
+    if True:
+        n_macrospins = len(pos)
+        size_x = np.amax(pos[:,0]) - np.amin(pos[:,0])
+        size_y = np.amax(pos[:,1]) - np.amin(pos[:,1])
+        system_area = size_x*size_y
+        macrospin_density = n_macrospins / system_area
 
-    print("Setting dr = {}".format(dr))
+        print("Number of magnets ={}".format(n_macrospins))
+        print("System size = {}x{}".format(size_x, size_y))
+        print("Density = {}".format(macrospin_density))
+        print("dr = density * 0.3 = {}".format(density*dr))
+        print("neighbor_dist = density * 10 = {}".format(density*10))
+        # dr = dr * np.amin(absEuclidianDist)
+        dr = density * dr
+        neighbor_dist = density * 10
+        print("Setting dr = {}".format(dr))
+        print("Setting neighbor_dist = {}".format(neighbor_dist))
 
     if neighbor_dist == np.inf:
         # using maximum separation as proxy for np.inf neighbor distance
         r_max = np.amax(absEuclidianDist)
         neighbor_dist = 0.25 * r_max
-    print("Neighbor dist: {}".format(neighbor_dist))
 
     # get list of neighbors for each magnet
     neighborList = getNeighborList(pos, sweep_ds.params, neighborDistance=neighbor_dist)
