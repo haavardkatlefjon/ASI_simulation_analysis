@@ -115,7 +115,7 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
-    if False:
+    if True:
         print("CORRLENGTHS, raw")
         for i in range(len(corrLengths)):
             print("{}:\t{}".format(temps[i], corrLengths[i]))
