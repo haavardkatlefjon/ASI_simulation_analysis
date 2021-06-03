@@ -787,5 +787,5 @@ def getValidIndices(corrLengths):
         if corrLengths[i] > corrLengths[i+1] * 0.8:
             indices[i] = True
             print("corr[{}] > corr[{}]*0.8".format(i, i+1))
-    else:
-        return indices
+        else:
+            return indices
