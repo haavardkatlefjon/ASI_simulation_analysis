@@ -777,3 +777,15 @@ def printConfig(corrConfig):
     print("Configuration:")
     for k,v in corrConfig.items():
         print("\t{:<20} {:>6}".format(k, round(v,4)))
+
+
+def getValidIndices(corrLengths):
+    indices = np.array([False for i in range(len(corrLengths))])
+
+    indices[-1] = True
+    for i in reversed(range(len(corrLengths)-1)):
+        if corrLengths[i] > corrLengths[i+1] * 0.8:
+            indices[i] = True
+            print("corr[{}] > corr[{}]*0.8".format(i, i+1))
+    else:
+        return indices
