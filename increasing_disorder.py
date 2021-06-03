@@ -11,9 +11,9 @@ import analysisHelpers as tools
 
 corrConfig = {
     'N_points_avg':   1,
-    'neighbor_dist':  np.inf,
+    'neighbor_dist':  10,
     'dr':             0.3,
-    'dtheta':         6,
+    'dtheta':         3,
 }
 
 def generateCorrFunctions(simulation_paths, output_directory):
@@ -28,11 +28,15 @@ def generateCorrFunctions(simulation_paths, output_directory):
             print("File already exist ({}). Continuing to next.".format(filename))
             continue
 
-
         if len(sim_ds.index.index) > 1:
             run_index = -1
         else:
             run_index = None
+        if len(sim_ds.index.index) == 25:
+            run_index = 20
+
+        if run_index != None:
+            print("T = {}".format(sim_ds.index.T_end.iloc[run_index]))
 
         r_k, C, _, _, _ = tools.getAvgCorrFunction(sim_ds, corrConfig, run_index=run_index)
 
@@ -51,6 +55,8 @@ if __name__ == "__main__":
     directory = 'data_for_thesis/increasing_disorder_500K/'
 
     for entry in os.listdir(directory):
+        if entry.endswith('old'):
+            continue
         if os.path.isdir(os.path.join(directory, entry)):
             simulation_paths.append(os.path.join(directory, entry))
 

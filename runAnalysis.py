@@ -87,7 +87,7 @@ def tempsweep(sweep_ds, temps):
     return np.array(corrFunctions), r_k, corrLengths, corrLengthsVar, corrSums, np.array(spinConfigs)
 
 
-def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = None):
+def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = None, filterTemps=False):
     # Print start info
     startInfo = "Starting temp sweep analysis from flatspin sweep {} ({} runs) \n".format(sweep_ds.basepath, len(sweep_ds.index.index))
     print("-".join(['' for i in range(round(1.1*len(startInfo)))]))
@@ -115,12 +115,7 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
-    if True:
-        print("CORRLENGTHS, raw")
-        for i in range(len(corrLengths)):
-            print("{}:\t{}".format(temps[i], corrLengths[i]))
-        print()
-
+    if filterTemps:
         validIndices = tools.getValidIndices(corrLengths)
         print("validIndices")
         print(validIndices)
@@ -131,16 +126,7 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
         corrLengthsVar  = corrLengthsVar[validIndices]
         corrSums        = corrSums[validIndices]
 
-        print("Valid temps")
-        print("temps", temps)
-        print()
-        print("NEW SHAPES")
-        print("temps", temps.shape)
-        print("corrFunctions", corrFunctions.shape)
-        print("corrLengths", corrLengths.shape)
-        print("corrLengthsVar", corrLengthsVar.shape)
-        print("corrSums", corrSums.shape)
-        print()
+        print("Using only T > {} \n".format(temps[0]))
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
     susceptibilities    = tools.flucDissSusceptibility(temps, corrSums[:,0])
@@ -166,7 +152,7 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
         tools.plotAnalysis(sweep_ds, filenameBase, temps, r_k, corrFunctions, corrLengths, corrLengthsVar, susceptibilities, T_c, C_curie, A, nu, invSusceptibilitiesStd=invSusceptibilitiesStd, saveFile=True, directory=out_directory)
 
         # Spin config plots
-        tools.plotASEs(sweep_ds, filenameBase, spinConfigs, temps, saveFile=True, directory=out_directory)
+        # tools.plotASEs(sweep_ds, filenameBase, spinConfigs, temps, saveFile=True, directory=out_directory)
 
     if returnKey != None:
         try:
@@ -185,7 +171,7 @@ def fitnessFunction(sweep_ds):
         'A'           power law coefficient
         'nu'          critical exponent
     """
-    return main_analysis(sweep_ds, createPlots=True, returnKey = 'T_c')
+    return main_analysis(sweep_ds, createPlots=True, returnKey = 'T_c', filterTemps=True)
 
 
 def main_existing_analysis(path, args, out_directory='', createPlots = True):
