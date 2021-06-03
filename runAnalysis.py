@@ -115,31 +115,32 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
-    print("CORRLENGTHS, raw")
-    for i in range(len(corrLengths)):
-        print("{}:\t{}".format(temps[i], corrLengths[i]))
-    print()
-    
-    validIndices = tools.getValidIndices(corrLengths)
-    print("validIndices")
-    print(validIndices)
+    if False:
+        print("CORRLENGTHS, raw")
+        for i in range(len(corrLengths)):
+            print("{}:\t{}".format(temps[i], corrLengths[i]))
+        print()
 
-    temps           = temps[validIndices]
-    corrFunctions   = corrFunctions[validIndices]
-    corrLengths     = corrLengths[validIndices]
-    corrLengthsVar  = corrLengthsVar[validIndices]
-    corrSums        = corrSums[validIndices]
+        validIndices = tools.getValidIndices(corrLengths)
+        print("validIndices")
+        print(validIndices)
 
-    print("Valid temps")
-    print("temps", temps)
-    print()
-    print("NEW SHAPES")
-    print("temps", temps.shape)
-    print("corrFunctions", corrFunctions.shape)
-    print("corrLengths", corrLengths.shape)
-    print("corrLengthsVar", corrLengthsVar.shape)
-    print("corrSums", corrSums.shape)
-    print()
+        temps           = temps[validIndices]
+        corrFunctions   = corrFunctions[validIndices]
+        corrLengths     = corrLengths[validIndices]
+        corrLengthsVar  = corrLengthsVar[validIndices]
+        corrSums        = corrSums[validIndices]
+
+        print("Valid temps")
+        print("temps", temps)
+        print()
+        print("NEW SHAPES")
+        print("temps", temps.shape)
+        print("corrFunctions", corrFunctions.shape)
+        print("corrLengths", corrLengths.shape)
+        print("corrLengthsVar", corrLengthsVar.shape)
+        print("corrSums", corrSums.shape)
+        print()
 
     # Compute magnetic susceptibilities using the fluctuation-dissipation theorem
     susceptibilities    = tools.flucDissSusceptibility(temps, corrSums[:,0])
