@@ -171,11 +171,11 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
         print("Number of magnets ={}".format(n_macrospins))
         print("System size = {}x{}".format(size_x, size_y))
         print("Density = {}".format(macrospin_density))
-        print("dr = 0.3 / density = {}".format(dr / macrospin_density))
-        print("neighbor_dist = 10 / density = {}".format(10 / macrospin_density))
+        print("dr = 0.3 / sqrt(density) = {}".format(dr / np.sqrt(macrospin_density)))
+        print("neighbor_dist = 10 / sqrt(density) = {}".format(10 / np.sqrt(macrospin_density)))
         # dr = dr * np.amin(absEuclidianDist)
-        dr = dr / macrospin_density
-        neighbor_dist = 10 / macrospin_density
+        dr = dr / np.sqrt(macrospin_density)
+        neighbor_dist = 10 / np.sqrt(macrospin_density)
         print("Setting dr = {}".format(dr))
         print("Setting neighbor_dist = {}".format(neighbor_dist))
 
