@@ -73,11 +73,11 @@ def tempsweep(sweep_ds, temps):
 
         # Compute correlation length by curve fitting with exp(-r/zeta)
         p0 = r_k[round(0.5*len(r_k))]
-        bounds=(0,1000)
+        bounds=(0,r_k[-1] * 100)
+        print("Curve fit bounds (0, {}). Init guess {}".format(bounds[1], p0))
         popt, pcov = curve_fit(tools.expfunc, r_k, C, bounds=bounds, p0=p0)
         corrLengths[i] = popt[0]
         corrLengthsVar[i] = np.sqrt(np.diag(pcov))
-        print("Curve fit bounds (0, {}). Init guess {}".format(bounds[1], p0))
         print("Corr length {} \n".format(round(corrLengths[i],2)))
 
     corrSumsMean = np.mean(corrSums, axis=1)
