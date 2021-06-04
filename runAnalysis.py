@@ -113,6 +113,9 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     temps = tools.getTemps(sweep_ds)
 
     print("temps")
+    print(temps.shape)
+    print(temps)
+    temps = temps[0]
     print(temps)
 
     # Get correlation lengths
