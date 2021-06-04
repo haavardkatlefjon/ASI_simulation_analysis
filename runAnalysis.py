@@ -139,7 +139,7 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
         print(temps.shape)
         print(temps)
 
-        print("corrSums")
+        print("corrSums - slett")
         print(corrSums.shape)
         print(corrSums)
 
