@@ -112,18 +112,19 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     #temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
     temps = tools.getTemps(sweep_ds)
 
-    print("temps")
-    print(temps.shape)
-    print(temps)
-    temps = temps[0]
-    print(temps)
 
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
+    print("temps")
+    print(temps.shape)
+    print(temps)
+
     if filterTemps:
         print("corrLengths")
         print(corrLengths)
+        print(corrLengths.shape)
+
         validIndices = tools.getValidIndices(corrLengths)
         print("validIndices")
         print(validIndices)
@@ -133,6 +134,14 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
         corrLengths     = corrLengths[validIndices]
         corrLengthsVar  = corrLengthsVar[validIndices]
         corrSums        = corrSums[validIndices]
+
+        print("temps")
+        print(temps.shape)
+        print(temps)
+
+        print("corrSums")
+        print(corrSums.shape)
+        print(corrSums)
 
         print("Using only T > {} \n".format(temps[0]))
 
