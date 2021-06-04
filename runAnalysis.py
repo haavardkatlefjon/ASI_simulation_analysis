@@ -112,10 +112,15 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     #temps = np.array([tools.getEndTemp(sweep_ds.index.iloc[i]['temp']) for i in range(len(sweep_ds.index.index))])
     temps = tools.getTemps(sweep_ds)
 
+    print("temps")
+    print(temps)
+
     # Get correlation lengths
     corrFunctions, r_k, corrLengths, corrLengthsVar, corrSums, spinConfigs = tempsweep(sweep_ds, temps)
 
     if filterTemps:
+        print("corrLengths")
+        print(corrLengths)
         validIndices = tools.getValidIndices(corrLengths)
         print("validIndices")
         print(validIndices)
