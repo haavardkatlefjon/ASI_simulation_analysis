@@ -171,6 +171,7 @@ def fitnessFunction(sweep_ds):
         'A'           power law coefficient
         'nu'          critical exponent
     """
+    sweep_ds.index.reset_index(inplace=True)
     return main_analysis(sweep_ds, createPlots=True, returnKey = 'T_c', filterTemps=True)
 
 
