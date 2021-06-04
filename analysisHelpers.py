@@ -163,7 +163,10 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     absEuclidianDist = absEuclidianDist[absEuclidianDist>0]
     print("min euclid dist", np.amin(absEuclidianDist))
 
-    if True:
+    dr = dr * np.amin(absEuclidianDist)
+    neighbor_dist = 10 * np.amin(absEuclidianDist)
+
+    if False:
         n_macrospins = len(pos)
         size_x = np.amax(pos[:,0]) - np.amin(pos[:,0])
         size_y = np.amax(pos[:,1]) - np.amin(pos[:,1])
@@ -178,8 +181,9 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
         # dr = dr * np.amin(absEuclidianDist)
         dr = dr / np.sqrt(macrospin_density)
         neighbor_dist = 10 / np.sqrt(macrospin_density)
-        print("Setting dr = {}".format(dr))
-        print("Setting neighbor_dist = {}".format(neighbor_dist))
+
+    print("dr = {}".format(dr))
+    print("neighbor_dist = {}".format(neighbor_dist))
 
     if neighbor_dist == np.inf:
         # using maximum separation as proxy for np.inf neighbor distance
