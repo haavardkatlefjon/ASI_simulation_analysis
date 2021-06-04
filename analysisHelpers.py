@@ -147,6 +147,8 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     if run_index == None:
         pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry'))
     else:
+        print(run_index)
+        print("run_index")
         pos, angle = fsd.read_geometry(sweep_ds.tablefile('geometry')[run_index])
 
     # convert coordinated to units of lattice spacing
@@ -801,5 +803,5 @@ def getValidIndices(corrLengths):
             indices[i] = True
             print("corr[{}] > corr[{}]*0.8".format(i, i+1))
         else:
-            break 
+            break
     return indices

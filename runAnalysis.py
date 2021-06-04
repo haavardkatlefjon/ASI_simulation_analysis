@@ -54,7 +54,7 @@ def tempsweep(sweep_ds, temps):
 
             if len(groups) > 1:
                 run_index = sweep_ds.index.index[
-                                (sweep_ds.index['T_end'] == temps[i]).to_numpy()*
+                                (sweep_ds.index['T_end'] == temps[i]).to_numpy() &
                                 (sweep_ds.index['group_id'] == g_id).to_numpy()
                                 ].tolist()[0]
             else:
