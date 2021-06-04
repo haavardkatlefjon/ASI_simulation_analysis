@@ -164,7 +164,7 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     print("min euclid dist", np.amin(absEuclidianDist))
 
     dr = dr * np.amin(absEuclidianDist)
-    neighbor_dist = 10 * np.amin(absEuclidianDist)
+    neighbor_dist = 25 * np.amin(absEuclidianDist)
 
     if False:
         n_macrospins = len(pos)
