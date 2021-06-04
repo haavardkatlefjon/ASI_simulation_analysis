@@ -161,7 +161,10 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
 
     absEuclidianDist = np.sqrt(absDistances[:,:,0]**2 + absDistances[:,:,1]**2)
     absEuclidianDist = absEuclidianDist[absEuclidianDist>0]
+
+    r_max = np.amax(absEuclidianDist)
     print("min euclid dist", np.amin(absEuclidianDist))
+    print("max euclid dist", r_max)
 
     dr = dr * np.amin(absEuclidianDist)
     neighbor_dist = 0.25 * r_max # 25 * np.amin(absEuclidianDist)
