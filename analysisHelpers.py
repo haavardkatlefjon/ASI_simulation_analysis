@@ -166,8 +166,9 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     print("min euclid dist", np.amin(absEuclidianDist))
     print("max euclid dist", r_max)
 
-    dr = dr * np.amin(absEuclidianDist)
-    neighbor_dist = 0.25 * r_max # 25 * np.amin(absEuclidianDist)
+    if False:
+        dr = dr * np.amin(absEuclidianDist)
+        neighbor_dist = 0.25 * r_max # 25 * np.amin(absEuclidianDist)
 
     if False:
         n_macrospins = len(pos)
@@ -263,8 +264,8 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     C = np.delete(C, nan_index)
     C_sum = np.mean(C_sum)
     print("C_sum before normalization {}".format(C_sum))
-    C_sum /= nonempty_bins_count
-    print("C_sum after normalization {}".format(C_sum))
+    # C_sum /= nonempty_bins_count
+    #print("C_sum after normalization {}".format(C_sum))
 
     return r_k, C, C_sum, avgPairsInBin, spinConfiguration
 
