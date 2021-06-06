@@ -16,8 +16,8 @@ except Exception as e:
 
 """""""""""""""""""""""""""""""""""""""   CORR CONFIG   """""""""""""""""""""""""""""""""""""""
 corrConfig = {
-    'dr':             0.3,     # units of lattice spacing
-    'dtheta':         3,   # degrees
+    'dr':             0.1,     # units of lattice spacing
+    'dtheta':         1,   # degrees
     'N_points_avg':   1,       # number of timeframes used to make thermal avg
     'neighbor_dist':  10,#np.inf,  # units of lattice spacing. Distance within correlation should be checked
 }
@@ -224,6 +224,8 @@ def main_existing_analysis(path, args, out_directory='', createPlots = True):
 
     # Find critical temperature, T_c
     T_c, C_curie = tools.getCriticalTemp(data.temps, susceptibilities)
+    #T_c = 1050
+
 
     # determine critical parameter
     A, nu = tools.getCriticalExponent(data.temps, data.corrLengths, T_c)

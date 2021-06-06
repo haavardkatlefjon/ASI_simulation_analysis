@@ -131,7 +131,7 @@ def getTheta(coordsA, coordsB, originRot, verbose=False):
     return theta
 
 
-def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
+def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None, manual_spin_config=None):
     """ Called from tempsweep. Returns 1d avg correlation function. """
 
     # polar correlation function config
@@ -213,7 +213,12 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None):
     timeframes = [len(allSpinConfiguration.index)-1]
 
     for ti, t in enumerate(timeframes):
-        spinConfiguration = allSpinConfiguration.iloc[t].to_numpy()[1:]
+        try:
+            manual_spin_config[0]
+            spinConfiguration = manual_spin_config
+        except:
+            spinConfiguration = allSpinConfiguration.iloc[t].to_numpy()[1:]
+
         counter           = np.zeros(C[ti,:,:].shape)
 
         for i in tqdm(range(len(pos))):
