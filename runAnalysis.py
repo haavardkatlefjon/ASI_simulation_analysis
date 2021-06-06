@@ -141,6 +141,9 @@ def main_analysis(sweep_ds, out_directory = '', createPlots=True, returnKey = No
     # filename for storing output files
     analysisID    = tools.getAnalysisId(out_directory)
     runName       = tools.getRunName(sweep_ds.basepath, temps)
+    if runName.startswith('gen'):
+        runName = sweep_ds.index.outdir[0].split('_')[0]
+
     if analysisID != None:
         runName = str(analysisID) + "_" + runName
     filenameBase  = os.path.join(out_directory, runName)
