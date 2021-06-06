@@ -798,7 +798,7 @@ def getRunName(input_path, temps):
             elif elements[i-1] == 'runs':
                 elements[i] = str(len(temps))
         runName += elements[i] + "_"
-    return runName[:-1]
+    return runName #[:-1]
 
 
 def printConfig(corrConfig):
