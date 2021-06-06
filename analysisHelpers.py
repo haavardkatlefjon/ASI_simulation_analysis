@@ -166,7 +166,7 @@ def getAvgCorrFunction(sweep_ds, corrConfig, run_index=None, manual_spin_config=
     print("min euclid dist", np.amin(absEuclidianDist))
     print("max euclid dist", r_max)
 
-    if False:
+    if True:
         dr = dr * np.amin(absEuclidianDist)
         neighbor_dist = 0.25 * r_max # 25 * np.amin(absEuclidianDist)
 
