@@ -248,6 +248,8 @@ def main_existing_analysis(path, args, out_directory='', createPlots = True):
     #tempSweepResults, parameterResults = tools.processResults(corrConfig, temps, corrFunctions, corrLengths, corrLengthsVar, corrSums, susceptibilities, T_c, C_curie, A, nu, writeToFile=True, filenameBase=filenameBase, printResults=True, input_path=sweep_ds.basepath)
     if not 'corrSumsStd' in data.columns:
         data.corrSumsStd = np.ones(len(data.index))*np.nan
+
+    filenameBase = filenameBase.split('-data.csv')[0]
     data.to_csv(filenameBase + '-data.csv', index=False)
     paramResults.to_csv(filenameBase + '-paramResults.csv', index=False)
 
